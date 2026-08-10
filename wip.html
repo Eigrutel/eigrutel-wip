@@ -1,0 +1,2636 @@
+<!--
+Eigrutel Lab - Atelier d'outils libres pour la bande dessinée
+Programme conçu et développé par Simon Léturgie dans le cadre d'Eigrutel BD Academy.
+Nom : WIP
+Version : 1.0.0
+Date : 10-08-2026
+Code : GNU AGPL v3.0 ou version ultérieure.
+Documentation et modèles : CC BY-SA 4.0, sauf mention contraire.
+Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Academy : réservés.
+-->
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WIP — Suivi de pages BD</title>
+
+  <link rel="icon" type="image/png" href="favicon/favwip.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/favwip.png">
+  <meta name="apple-mobile-web-app-title" content="WIP">
+
+  <style>
+
+    /* Palette et variables globales / Global palette and variables */
+    :root{
+      --atelier:#A63D40;
+      --rouge-atelier:#A63D40;
+      --bleu-atelier:#1F3A44;
+      --ink:#181614;
+      --muted:#706a62;
+      --line:rgba(31,58,68,.11);
+      --paper:#FFFFFF;
+      --soft:#F6F7F8;
+      --soft2:#ECEFF2;
+      --radius:16px;
+      --shadow:0 14px 32px rgba(31,58,68,.07);
+      --modal:rgba(24,22,20,.38);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:#F3F4F6;
+      color:var(--ink);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height:1.45;
+    }
+
+    button,input,textarea{font:inherit}
+
+    /* Conteneur général / Main container */
+    .app{
+      width:min(1180px, calc(100% - 28px));
+      margin:22px auto 34px;
+    }
+
+    /* En-tête, champs projet et menu / Header, project fields and menu */
+    .hero{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:24px 24px 22px;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+
+    .kicker{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      color:var(--rouge-atelier);
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-size:.72rem;
+      line-height:1;
+      font-weight:850;
+      margin:0 0 14px;
+    }
+
+    .kicker::before,
+    .kicker::after{
+      content:"";
+      height:1px;
+      background:rgba(31,58,68,.28);
+      opacity:1;
+      flex:0 0 48px;
+    }
+
+    h1{
+      margin:0;
+      color:var(--bleu-atelier);
+      font-size:24px;
+      line-height:1.1;
+      letter-spacing:-.02em;
+      font-weight:850;
+    }
+
+    .subtitle{
+      margin:12px auto 0;
+      color:#514b44;
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .top-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.4fr) minmax(120px,.6fr) minmax(150px,.7fr) auto auto;
+      gap:12px;
+      margin-top:20px;
+      align-items:end;
+    }
+
+    .field{
+      min-width:0;
+    }
+
+    .field label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      margin:0 0 6px;
+    }
+
+    .field input{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      height:40px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      padding:0 12px;
+      outline:none;
+    }
+
+    .field input:focus{
+      border-color:rgba(198,59,43,.55);
+      box-shadow:0 0 0 3px rgba(198,59,43,.11);
+    }
+
+    .deadline-field{
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .deadline-field input[type="date"]{
+      display:block;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+
+    input[type="date"]{
+      line-height:40px;
+    }
+
+    input[type="date"]::-webkit-date-and-time-value{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      margin:0;
+      padding:0;
+      text-align:center;
+    }
+
+    .btn{
+      min-width:0;
+      width:100%;
+      height:40px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      padding:0 10px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:750;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .btn:hover{border-color:rgba(31,58,68,.22);background:#F7F8FA}
+    .btn.primary{background:var(--atelier);border-color:var(--atelier);color:#fff}
+    .btn.danger{color:var(--atelier)}
+
+    /* Mise en page principale / Main workspace layout */
+    .layout{
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .panel{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      min-width:0;
+    }
+
+    .panel h2{
+      margin:0 0 12px;
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#3a352f;
+    }
+
+    /* États de production / Production statuses */
+    .states{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .states-accordion{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      overflow:hidden;
+    }
+
+    .states-accordion summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 13px;
+      cursor:pointer;
+      list-style:none;
+      color:#3a352f;
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:850;
+      user-select:none;
+    }
+
+    .states-accordion summary::-webkit-details-marker{display:none}
+
+    .states-accordion summary::after{
+      content:"+";
+      display:grid;
+      place-items:center;
+      width:20px;
+      height:20px;
+      border:1px solid rgba(31,58,68,.16);
+      border-radius:999px;
+      color:var(--bleu-atelier);
+      font-size:14px;
+      line-height:1;
+      font-weight:800;
+      background:#fff;
+    }
+
+    .states-accordion[open] summary::after{content:"–"}
+
+    .states-accordion .states{
+      padding:0 10px 10px;
+    }
+
+    .mode-box{
+      margin:0 0 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+    }
+
+    .mode-box .check-row{
+      border:0;
+      background:transparent;
+      padding:0;
+      min-height:24px;
+    }
+
+    .mode-help{
+      margin:7px 0 0 24px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+
+    .state-row{
+      display:grid;
+      grid-template-columns:30px 1fr 38px 28px;
+      gap:8px;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:7px;
+      background:#fff;
+      cursor:pointer;
+    }
+
+    .state-row.active{
+      border-color:var(--atelier);
+      box-shadow:0 0 0 3px rgba(166,61,64,.11);
+    }
+
+    body:not(.is-editing-states) .state-row{
+      opacity:.72;
+    }
+
+    .swatch{
+      width:24px;
+      height:24px;
+      border-radius:8px;
+      border:1px solid rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+
+    .swatch input{
+      width:36px;
+      height:36px;
+      border:0;
+      padding:0;
+      margin:-6px;
+      cursor:pointer;
+    }
+
+    .state-name{
+      min-width:0;
+      width:100%;
+      border:0;
+      background:transparent;
+      color:var(--ink);
+      font-size:13px;
+      font-weight:700;
+      padding:5px 2px;
+      outline:none;
+    }
+
+    .state-count{
+      text-align:right;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .state-move{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:0;
+      width:28px;
+      min-width:28px;
+    }
+
+    .state-order{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:0;
+    }
+
+    .state-order button{
+      width:20px;
+      height:14px;
+      border:0;
+      background:transparent;
+      color:#8C857D;
+      padding:0;
+      font-size:8px;
+      line-height:1;
+      cursor:pointer;
+      border-radius:4px;
+    }
+
+    .state-order button:hover{
+      background:#F3F4F6;
+      color:var(--ink);
+    }
+
+    .state-order button:disabled{
+      opacity:.18;
+      cursor:default;
+      background:transparent;
+    }
+
+    .state-delete{
+      width:20px;
+      height:16px;
+      margin:1px 0 0;
+      border:0;
+      border-radius:4px;
+      background:transparent;
+      color:#9A938B;
+      cursor:pointer;
+      font-size:13px;
+      line-height:1;
+      padding:0;
+    }
+
+    .state-delete:hover{
+      background:#F3F4F6;
+      color:var(--atelier);
+    }
+
+
+    .states-tools{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      padding:0 10px 10px;
+    }
+
+    .states-tools .btn{height:34px;font-size:13px}
+
+    .current{
+      margin-top:14px;
+      border-radius:12px;
+      background:var(--soft);
+      border:1px solid var(--line);
+      padding:10px;
+      font-size:13px;
+      color:#4b463f;
+    }
+
+    .current strong{color:var(--ink)}
+
+    /* Progression globale / Overall progress */
+    .progress-wrap{
+      margin-top:14px;
+    }
+
+    .progress-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .progress{
+      height:10px;
+      border-radius:999px;
+      background:var(--soft2);
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.08);
+    }
+
+    .progress span{
+      display:block;
+      height:100%;
+      width:0;
+      background:#4f6f5a;
+      transition:width .18s ease;
+    }
+
+    .options{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .check-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:38px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:8px 10px;
+      color:#4b463f;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .check-row input{
+      width:16px;
+      height:16px;
+      accent-color:var(--atelier);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));
+      gap:8px;
+      min-width:0;
+    }
+
+    .board-actions-panel{
+      margin-top:18px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+
+    .board-actions-title{
+      margin:0 0 10px;
+      color:#3a352f;
+      font-size:12px;
+      font-weight:850;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .file-menu{
+      position:relative;
+      min-width:0;
+      z-index:30;
+    }
+
+    .file-menu summary{
+      list-style:none;
+      width:38px;
+      height:34px;
+      display:grid;
+      place-items:center;
+      padding:0;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      color:#3a352f;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .file-menu summary::-webkit-details-marker{display:none}
+    .file-menu summary::after{content:none}
+
+    .hamburger-icon{
+      position:relative;
+      display:block;
+      width:16px;
+      height:12px;
+      border-top:2px solid currentColor;
+      border-bottom:2px solid currentColor;
+    }
+
+    .hamburger-icon::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      top:50%;
+      height:2px;
+      background:currentColor;
+      transform:translateY(-50%);
+    }
+
+    .file-menu-popover{
+      position:absolute;
+      right:0;
+      top:calc(100% + 6px);
+      z-index:20;
+      width:210px;
+      display:grid;
+      gap:6px;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 16px 38px rgba(31,58,68,.14);
+    }
+
+    .file-menu-popover .btn{height:36px;text-align:left;font-size:13px}
+
+    /* Tableau des pages / Page board */
+    .board-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .board-head h2{margin:0}
+
+    .board-title-zone{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .legend-strip{
+      display:flex;
+      flex-wrap:wrap;
+      gap:5px 7px;
+      align-items:center;
+      max-width:100%;
+    }
+
+    .legend-tab{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      min-height:20px;
+      padding:3px 7px;
+      border:1px solid rgba(31,58,68,.12);
+      border-radius:999px;
+      background:#F7F8FA;
+      color:#554d45;
+      font-size:10px;
+      line-height:1;
+      font-weight:750;
+      white-space:nowrap;
+    }
+
+    .legend-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.16);
+      flex:0 0 auto;
+    }
+
+    .legend-label{
+      max-width:82px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .board-right-tools{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+      min-width:210px;
+    }
+
+    .view-switch{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:28px;
+      padding:5px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      color:#4b463f;
+      font-size:11px;
+      line-height:1;
+      font-weight:750;
+      white-space:nowrap;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .view-switch input{
+      width:14px;
+      height:14px;
+      accent-color:var(--atelier);
+      margin:0;
+    }
+
+    .pages-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, 44px);
+      gap:8px;
+      align-items:start;
+    }
+
+    .page-tile{
+      width:44px;
+      height:64px;
+      border-radius:4px;
+      border:1px solid rgba(0,0,0,.2);
+      color:#17130f;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      font-weight:850;
+      cursor:pointer;
+      user-select:none;
+      transition:transform .08s ease, box-shadow .08s ease, border-color .08s ease;
+      position:relative;
+    }
+
+    .page-tile:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 16px rgba(30,20,10,.12);
+      border-color:rgba(0,0,0,.34);
+    }
+
+    .page-tile:active{transform:translateY(0)}
+
+    .page-number{
+      position:relative;
+      z-index:1;
+    }
+
+    .note-mark{
+      position:absolute;
+      top:4px;
+      right:5px;
+      font-size:14px;
+      line-height:1;
+      font-weight:900;
+      color:rgba(20,16,12,.78);
+    }
+
+    .page-tile.has-note{
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.28);
+    }
+
+    .page-tile.selected{
+      outline:3px solid rgba(198,59,43,.25);
+      outline-offset:2px;
+    }
+
+    .import-input{display:none}
+
+    /* Fenêtres modales / Dialog overlays */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:var(--modal);
+      z-index:50;
+    }
+
+    .modal-backdrop.open{display:flex}
+
+    .note-dialog{
+      width:min(520px, 100%);
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 24px 70px rgba(25,18,12,.22);
+      padding:18px;
+    }
+
+    .note-dialog h3{
+      margin:0 0 10px;
+      font-size:15px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .note-dialog textarea{
+      width:100%;
+      min-height:150px;
+      resize:vertical;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      padding:12px;
+      outline:none;
+      line-height:1.45;
+    }
+
+    .note-dialog textarea:focus{
+      border-color:rgba(198,59,43,.55);
+      box-shadow:0 0 0 3px rgba(198,59,43,.11);
+    }
+
+    .note-dialog .note-help{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .note-links{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:10px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#F7F8FA;
+    }
+
+    .note-links[hidden]{display:none}
+
+    .note-links-title{
+      margin:0;
+      color:#3a352f;
+      font-size:11px;
+      font-weight:850;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .note-link{
+      display:block;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:var(--bleu-atelier);
+      font-size:13px;
+      font-weight:750;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+
+    .note-link:hover{text-decoration:underline}
+
+    .note-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .help-dialog{width:min(560px,100%)}
+    .help-content{color:#4b463f;font-size:13px;line-height:1.5}
+    .help-content p{margin:0 0 12px}
+    .help-list{margin:0;padding-left:20px}
+    .help-list li{margin:0 0 8px}
+    .help-version{
+      margin:14px 0 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    /* Pied de page / Footer */
+    .eigrutel-app-footer{
+      width:100%;
+      padding:24px 16px 4px;
+      text-align:center;
+    }
+
+    .eigrutel-app-footer a{
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--bleu-atelier);
+      text-decoration:none;
+      opacity:.72;
+    }
+
+    .eigrutel-app-footer a:hover{opacity:1}
+
+    @media (max-width:900px){
+      .layout{grid-template-columns:1fr}
+      .states{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0,1fr));
+      }
+      .panel.side{order:1}
+      .panel.board{order:2}
+      .board-actions-panel{margin-top:16px}
+      .actions{grid-template-columns:repeat(auto-fit, minmax(128px, 1fr))}
+      .board-actions-panel .btn{font-size:13px;padding:0 8px}
+    }
+
+    @media (max-width:720px){
+      .app{width:min(100% - 18px, 1180px);margin-top:10px}
+      .hero{padding:18px}
+      .kicker::before,.kicker::after{flex-basis:32px}
+      .top-grid{grid-template-columns:1fr auto;}
+      .top-grid > .field:first-child{grid-column:1 / -1}
+      .top-grid > .field:nth-child(2){grid-column:1 / -1}
+      .top-grid .deadline-field{grid-column:1 / -1}
+      .top-grid > .btn{grid-column:1}
+      .top-grid > .file-menu{grid-column:2;align-self:end}
+      .states{grid-template-columns:1fr}
+      .board-head{align-items:flex-start;flex-direction:column}
+      .board-right-tools{align-items:flex-start;min-width:0;width:100%}
+      .pages-grid{grid-template-columns:repeat(auto-fill, 40px);gap:7px}
+      .page-tile{width:40px;height:58px;font-size:12px}
+      .actions{grid-template-columns:repeat(2, minmax(0, 1fr))}
+      .board-actions-panel .btn{font-size:13px;padding:0 6px}
+    }
+
+    @media (max-width:430px){
+      .actions{grid-template-columns:1fr}
+      .board-actions-panel .btn{font-size:13px;padding:0 10px}
+    }
+
+    .states-tools{
+      display:grid;
+      gap:8px;
+      padding:0 10px 10px;
+    }
+
+    .states-tools .btn{height:36px;font-size:13px}
+
+    /* Métadonnées de page / Page metadata */
+    .page-meta-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin:0 0 10px;
+    }
+
+    .page-meta-field{
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .page-meta-field label{
+      display:block;
+      margin:0 0 6px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .page-meta-field input{
+      display:block;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      height:40px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      padding:0 12px;
+      outline:none;
+    }
+
+    .page-meta-field input[type="date"]{
+      -webkit-appearance:none;
+      appearance:none;
+      overflow:hidden;
+      line-height:40px;
+    }
+
+    .panel-count{
+      position:absolute;
+      right:4px;
+      bottom:3px;
+      font-size:9px;
+      line-height:1;
+      font-weight:800;
+      color:rgba(20,16,12,.62);
+      z-index:1;
+      pointer-events:none;
+    }
+
+    /* Calculateur de travail / Work calculator */
+    .work-planner{
+      margin-top:22px;
+      border-top:1px solid var(--line);
+      padding-top:18px;
+    }
+
+    .work-planner h3{
+      margin:0 0 5px;
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#3a352f;
+    }
+
+    .work-planner-subtitle,.planner-today{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .planner-mode{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+    .planner-mode-toggle{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:32px;padding:6px 11px;border:1px solid var(--line);
+      border-radius:999px;background:#fff;color:#4b463f;font-size:12px;font-weight:700;cursor:pointer;
+    }
+    .planner-mode-toggle input{display:none}
+    .planner-mode-toggle.active{border-color:rgba(166,61,64,.45);background:rgba(166,61,64,.08);color:var(--atelier)}
+    .planner-derived{background:var(--soft)!important;font-weight:800}
+
+    .planner-weekdays{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+    .planner-weekday-toggle{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:42px;padding:6px 10px;border:1px solid var(--line);
+      border-radius:999px;background:#fff;color:#4b463f;font-size:12px;font-weight:700;cursor:pointer;
+    }
+    .planner-weekday-toggle input{display:none}
+    .planner-weekday-toggle.active{border-color:rgba(166,61,64,.45);background:rgba(166,61,64,.08);color:var(--atelier)}
+
+    .planner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .planner-field{min-width:0;overflow:hidden}
+    .planner-field label{display:block;margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:700}
+    .planner-field input{
+      display:block;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      height:40px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:0 10px;
+      color:var(--ink);
+      box-sizing:border-box;
+    }
+    .planner-field input[type="date"]{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      line-height:normal;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+    .planner-field input[type="date"]::-webkit-date-and-time-value{
+      min-height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      margin:0;
+    }
+    .planner-actions{margin-top:10px}
+    .planner-result{display:none;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+    .planner-result-line{margin:3px 0;font-size:13px;color:#4b463f}
+    .planner-result-strong{font-weight:800;color:var(--ink)}
+    .planner-progress-bar{height:8px;margin-top:10px;border-radius:999px;background:var(--soft2);overflow:hidden}
+    .planner-progress-fill{height:100%;width:0;background:var(--atelier)}
+    .planner-progress-text{margin-top:5px;font-size:12px;color:var(--muted)}
+    .planner-mini-calendar{margin-top:12px}
+    .planner-cal-header,.planner-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+    .planner-cal-header{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px}
+    .planner-cal-cell{padding:3px 0;border-radius:5px;font-size:11px;border:1px solid var(--line)}
+    .planner-cal-cell.work{background:rgba(166,61,64,.10);color:var(--atelier);font-weight:800}
+    .planner-cal-cell.off{background:#fff;color:#9b958e}
+    .planner-error{margin-top:8px;color:var(--atelier);font-size:12px;font-weight:700}
+
+    @media (max-width:720px){
+      .page-meta-grid,.planner-grid{grid-template-columns:1fr}
+    }
+
+    /* Impression / Print */
+    @media print{
+      body{background:#fff}
+      .app{width:100%;margin:0}
+      .hero,.panel{box-shadow:none;border-color:#bbb}
+      .btn,.actions,.top-grid,.board-actions-panel,.file-menu{display:none}
+      .layout{grid-template-columns:1fr}
+      .panel.side{display:none}
+      .page-tile{break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+  <!-- Application principale / Main application -->
+  <main class="app">
+    <!-- En-tête du projet et menu principal / Project header and main menu -->
+    <section class="hero" aria-labelledby="main-title">
+      <div class="kicker">Organisation</div>
+      <h1 id="main-title">WIP</h1>
+      <div class="top-grid">
+        <div class="field">
+          <label for="projectTitle">Titre du projet</label>
+          <input id="projectTitle" type="text" value="Projet BD" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="pageCount">Nombre de pages</label>
+          <input id="pageCount" type="number" inputmode="numeric" min="1" max="600" value="48">
+        </div>
+        <div class="field deadline-field">
+          <label for="deadline">Deadline</label>
+          <input id="deadline" type="date">
+        </div>
+        <button class="btn primary" id="updatePages" type="button">Mettre à jour</button>
+        <details class="file-menu" id="fileMenu">
+          <summary aria-label="Menu" title="Menu"><span class="hamburger-icon" aria-hidden="true"></span></summary>
+          <div class="file-menu-popover">
+            <button class="btn lang-switch" id="langSwitch" type="button">FR / EN</button>
+            <button class="btn" id="helpBtn" type="button">Info / Aide</button>
+            <button class="btn" id="exportJson" type="button">Exporter</button>
+            <button class="btn" id="importJsonBtn" type="button">Importer</button>
+            <button class="btn" id="printBtn" type="button">Imprimer</button>
+            <button class="btn" id="baseSettingsBtn" type="button">Réglages de base</button>
+            <button class="btn danger" id="resetPagesBtn" type="button">Pages à zéro</button>
+            <button class="btn danger" id="resetAllBtn" type="button">Tout remettre à zéro</button>
+            <input class="import-input" id="importJson" type="file" accept="application/json,.json">
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Espace de travail : états + pages / Workspace: statuses + pages -->
+    <section class="layout">
+      <!-- Gestion des états et progression / Status management and progress -->
+      <aside class="panel side">
+        <div class="mode-box">
+          <label class="check-row">
+            <input id="editMode" type="checkbox">
+            <span>Modifier les états des pages</span>
+          </label>
+          <p class="mode-help" id="modeHelp">Mode neutre : un clic sur une page ouvre sa note, sans changer son état.</p>
+        </div>
+
+        <details class="states-accordion" id="statesDetails">
+          <summary>États</summary>
+          <div class="states" id="states"></div>
+          <div class="states-tools">
+            <button class="btn" id="addStateBtn" type="button">+ Nouvel état</button>
+            <button class="btn" id="restoreDefaultStatesBtn" type="button">Rétablir les états par défaut</button>
+          </div>
+        </details>
+
+        <div class="current" id="currentState">Mode neutre</div>
+
+        <div class="progress-wrap">
+          <div class="progress-head">
+            <span id="doneLabel">0 page terminée</span>
+            <span id="percentLabel">0 %</span>
+          </div>
+          <div class="progress" aria-label="Progression"><span id="progressBar"></span></div>
+        </div>
+
+        <div class="options">
+          <label class="check-row">
+            <input id="hideDone" type="checkbox">
+            <span>Masquer pages finies</span>
+          </label>
+        </div>
+
+      </aside>
+
+      <!-- Tableau des pages et calculateur / Page board and work calculator -->
+      <section class="panel board">
+        <div class="board-head">
+          <div class="board-title-zone">
+            <h2 id="boardTitle">Projet BD — 48 pages</h2>
+            <div class="legend-strip" id="legendStrip" aria-label="Légende des états"></div>
+          </div>
+          <div class="board-right-tools">
+            <div class="hint" id="boardHint">Mode neutre : clic sur une page pour ouvrir la note. Activer la modification pour changer les états.</div>
+            <label class="view-switch">
+              <input id="sortByState" type="checkbox">
+              <span>Trier par avancement</span>
+            </label>
+          </div>
+        </div>
+        <div class="pages-grid" id="pagesGrid" aria-label="Pages du projet"></div>
+
+        <!-- Calculateur de charge / Workload calculator -->
+        <section class="work-planner" aria-labelledby="plannerTitle">
+          <h3 id="plannerTitle">Calculateur de travail</h3>
+          <p class="work-planner-subtitle">Calcul du travail restant par jour travaillé pour finir dans les temps.</p>
+          <p class="planner-today" id="plannerToday">Aujourd’hui : …</p>
+          <div class="planner-mode" id="plannerMode">
+            <label class="planner-mode-toggle active"><input type="radio" name="plannerUnit" value="pages" checked>Pages</label>
+            <label class="planner-mode-toggle"><input type="radio" name="plannerUnit" value="cases">Cases</label>
+          </div>
+          <div class="planner-field"><label>Jours travaillés</label></div>
+          <div class="planner-weekdays" id="plannerWeekdays">
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="1">Lun</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="2">Mar</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="3">Mer</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="4">Jeu</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="5">Ven</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="6">Sam</label>
+            <label class="planner-weekday-toggle"><input type="checkbox" class="planner-weekday-input" data-day="0">Dim</label>
+          </div>
+          <div class="planner-grid">
+            <div class="planner-field"><label for="plannerEndDate">Date de rendu</label><input type="date" id="plannerEndDate"></div>
+            <div class="planner-field"><label for="plannerTotalWork" id="plannerTotalWorkLabel">Nombre total de pages</label><input class="planner-derived" type="number" id="plannerTotalWork" min="0" value="0" readonly></div>
+          </div>
+          <div class="planner-actions"><button class="btn primary" id="plannerCalcBtn" type="button">Calculer</button></div>
+          <div class="planner-result" id="plannerResult">
+            <div class="planner-result-line" id="plannerSummary"></div>
+            <div class="planner-result-line" id="plannerDaysInfo"></div>
+            <div class="planner-result-line planner-result-strong" id="plannerPerDay"></div>
+            <div class="planner-progress-bar"><div class="planner-progress-fill" id="plannerProgressFill"></div></div>
+            <div class="planner-progress-text" id="plannerProgressText"></div>
+            <div class="planner-mini-calendar">
+              <div class="planner-cal-header"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+              <div class="planner-cal-grid" id="plannerCalendar"></div>
+            </div>
+          </div>
+          <div class="planner-error" id="plannerError"></div>
+        </section>
+
+      </section>
+    </section>
+    <!-- Signature Eigrutel / Eigrutel signature -->
+    <footer class="eigrutel-app-footer">
+      <a href="https://www.stripmee.com" target="_blank" rel="noopener noreferrer">Eigrutel BD Academy</a>
+    </footer>
+  </main>
+
+  <!-- Fiche d’une page / Page details dialog -->
+  <div class="modal-backdrop" id="noteModal" aria-hidden="true">
+    <div class="note-dialog" role="dialog" aria-modal="true" aria-labelledby="noteTitle">
+      <h3 id="noteTitle">Note page</h3>
+      <div class="page-meta-grid">
+        <div class="page-meta-field"><label for="noteDate">Date</label><input id="noteDate" type="date"></div>
+        <div class="page-meta-field"><label for="notePanels">Nombre de cases</label><input id="notePanels" type="number" inputmode="numeric" min="0" max="99" placeholder="0"></div>
+      </div>
+      <textarea id="noteText" placeholder="Précisions, documentation à chercher, changement de texte, correction…"></textarea>
+      <p class="note-help">Une note renseignée ajoute un astérisque à côté du numéro de page. La note est enregistrée à la fermeture.</p>
+      <div class="note-links" id="noteLinks" hidden aria-label="Liens détectés dans la note"></div>
+      <div class="note-actions">
+        <button class="btn danger" id="clearNote" type="button">Effacer</button>
+        <button class="btn primary" id="saveNote" type="button">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini manuel / Quick help -->
+  <div class="modal-backdrop" id="helpModal" aria-hidden="true">
+    <div class="note-dialog help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h3 id="helpTitle">WIP — Info / Aide</h3>
+      <div class="help-content">
+        <p id="helpIntro">WIP permet de suivre l’avancement d’un projet page par page.</p>
+        <ul class="help-list">
+          <li id="helpItem1">Cliquer sur une page ouvre sa fiche. En mode modification, le clic applique l’état sélectionné.</li>
+          <li id="helpItem2">Les boutons ▲ et ▼ permettent de réordonner les états.</li>
+          <li id="helpItem3">Chaque page peut recevoir une date, un nombre de cases et des précisions.</li>
+          <li id="helpItem4">Le calculateur utilise la deadline et peut calculer le travail restant en pages ou en cases.</li>
+          <li id="helpItem5">Les données sont enregistrées localement et peuvent être exportées ou importées en JSON.</li>
+        </ul>
+      </div>
+      <div class="note-actions">
+        <button class="btn primary" id="closeHelp" type="button">Fermer</button>
+      </div>
+      <p class="help-version" id="helpVersion">WIP — Eigrutel Lab — v1.0.0</p>
+    </div>
+  </div>
+
+  <script>
+    // Métadonnées de l’application / Application metadata
+    const APP_META = Object.freeze({
+      name:"WIP",
+      version:"1.0.0",
+      date:"10-08-2026"
+    });
+
+    // Stockage local principal et compatibilité avec les versions de travail.
+    // Main local storage and backward compatibility with development builds.
+    const STORAGE_KEY = "eigrutel_wip_v1";
+    const LEGACY_STORAGE_KEYS = [
+      "stripmee_avancement_v6",
+      "stripmee_avancement_v5",
+      "stripmee_avancement_v4"
+    ];
+    const DATA_COLOR_VERSION = 15;
+
+    // États de production fournis par défaut / Default production statuses
+    const defaultStates = [
+      { id:"non-commence", label:"Non commencé", color:"#FFF2D5" },
+      { id:"scenario", label:"Scénario", color:"#d6a45f" },
+      { id:"decoupage", label:"Découpage", color:"#c77f55" },
+      { id:"crayonne", label:"Crayonné", color:"#8fa878" },
+      { id:"encrage", label:"Encrage", color:"#6f98a8" },
+      { id:"lettrage", label:"Lettrage", color:"#8a7fa8" },
+      { id:"scan", label:"Scan", color:"#b47672" },
+      { id:"termine", label:"Terminé", color:"#474747" }
+    ];
+
+    // Données initiales du projet / Initial project data
+    function cloneDefaults(){
+      return defaultStates.map(state => ({ ...state }));
+    }
+
+    function makeDefaultData(){
+      return {
+        title:"Projet BD",
+        pageCount:48,
+        deadline:"",
+        activeState:"non-commence",
+        states: cloneDefaults(),
+        pages: [],
+        hideDone:false,
+        editMode:false,
+        sortByState:false,
+        lang:"fr",
+        colorDefaultsVersion:DATA_COLOR_VERSION
+      };
+    }
+
+    let data = makeDefaultData();
+
+    // Références DOM centralisées / Centralized DOM references
+    const els = {
+      projectTitle: document.getElementById("projectTitle"),
+      deadline: document.getElementById("deadline"),
+      pageCount: document.getElementById("pageCount"),
+      updatePages: document.getElementById("updatePages"),
+      states: document.getElementById("states"),
+      statesDetails: document.getElementById("statesDetails"),
+      addStateBtn: document.getElementById("addStateBtn"),
+      restoreDefaultStatesBtn: document.getElementById("restoreDefaultStatesBtn"),
+      currentState: document.getElementById("currentState"),
+      editMode: document.getElementById("editMode"),
+      modeHelp: document.getElementById("modeHelp"),
+      pagesGrid: document.getElementById("pagesGrid"),
+      boardTitle: document.getElementById("boardTitle"),
+      legendStrip: document.getElementById("legendStrip"),
+      boardHint: document.getElementById("boardHint"),
+      doneLabel: document.getElementById("doneLabel"),
+      percentLabel: document.getElementById("percentLabel"),
+      progressBar: document.getElementById("progressBar"),
+      exportJson: document.getElementById("exportJson"),
+      importJsonBtn: document.getElementById("importJsonBtn"),
+      importJson: document.getElementById("importJson"),
+      printBtn: document.getElementById("printBtn"),
+      baseSettingsBtn: document.getElementById("baseSettingsBtn"),
+      resetPagesBtn: document.getElementById("resetPagesBtn"),
+      resetAllBtn: document.getElementById("resetAllBtn"),
+      fileMenu: document.getElementById("fileMenu"),
+      langSwitch: document.getElementById("langSwitch"),
+      helpBtn: document.getElementById("helpBtn"),
+      helpModal: document.getElementById("helpModal"),
+      closeHelp: document.getElementById("closeHelp"),
+      helpTitle: document.getElementById("helpTitle"),
+      helpIntro: document.getElementById("helpIntro"),
+      helpItem1: document.getElementById("helpItem1"),
+      helpItem2: document.getElementById("helpItem2"),
+      helpItem3: document.getElementById("helpItem3"),
+      helpItem4: document.getElementById("helpItem4"),
+      helpItem5: document.getElementById("helpItem5"),
+      helpVersion: document.getElementById("helpVersion"),
+      hideDone: document.getElementById("hideDone"),
+      sortByState: document.getElementById("sortByState"),
+      noteModal: document.getElementById("noteModal"),
+      noteTitle: document.getElementById("noteTitle"),
+      noteDate: document.getElementById("noteDate"),
+      notePanels: document.getElementById("notePanels"),
+      noteText: document.getElementById("noteText"),
+      noteLinks: document.getElementById("noteLinks"),
+      saveNote: document.getElementById("saveNote"),
+      clearNote: document.getElementById("clearNote")
+    };
+
+    // Textes bilingues FR/EN / French-English interface strings
+    const I18N = {
+      fr:{
+        htmlLang:"fr",
+        locale:"fr-FR",
+        documentTitle:"WIP — Suivi de production BD",
+        appTitle:"WIP",
+        organisation:"Organisation",
+        projectTitle:"Titre du projet",
+        pageCount:"Nombre de pages",
+        deadline:"Deadline",
+        update:"Mettre à jour",
+        export:"Exporter",
+        import:"Importer",
+        print:"Imprimer",
+        baseSettings:"Réglages de base",
+        resetPages:"Pages à zéro",
+        resetAll:"Tout remettre à zéro",
+        help:"Info / Aide",
+        helpTitle:"WIP — Info / Aide",
+        helpIntro:"WIP permet de suivre l’avancement d’un projet page par page.",
+        helpItem1:"Cliquer sur une page ouvre sa fiche. En mode modification, le clic applique l’état sélectionné.",
+        helpItem2:"Les boutons ▲ et ▼ permettent de réordonner les états.",
+        helpItem3:"Chaque page peut recevoir une date, un nombre de cases et des précisions.",
+        helpItem4:"Le calculateur utilise la deadline et peut calculer le travail restant en pages ou en cases.",
+        helpItem5:"Les données sont enregistrées localement et peuvent être exportées ou importées en JSON.",
+        helpVersion:"WIP — Eigrutel Lab — v1.0.0",
+        editStates:"Modifier les états des pages",
+        states:"États",
+        addState:"+ Nouvel état",
+        restoreStates:"Rétablir les états par défaut",
+        hideDone:"Masquer pages finies",
+        sortProgress:"Trier par avancement",
+        plannerTitle:"Calculateur de travail",
+        plannerSubtitle:"Calcul du travail restant par jour travaillé pour finir dans les temps.",
+        today:"Aujourd’hui",
+        pages:"Pages",
+        panels:"Cases",
+        workDays:"Jours travaillés",
+        dueDate:"Date de rendu",
+        totalPages:"Nombre total de pages",
+        totalPanels:"Nombre total de cases",
+        calculate:"Calculer",
+        notePage:"Note page",
+        date:"Date",
+        panelCount:"Nombre de cases",
+        notePlaceholder:"Précisions, documentation à chercher, changement de texte, correction…",
+        noteHelp:"Une note renseignée ajoute un astérisque à côté du numéro de page. La note est enregistrée à la fermeture.",
+        clear:"Effacer",
+        close:"Fermer",
+        detectedLinks:"Liens détectés",
+        neutral:"Mode neutre",
+        activeState:"État actif",
+        noClickChange:"aucun changement d’état au clic",
+        modeNeutralHelp:"Mode neutre : un clic sur une page ouvre sa note, sans changer son état.",
+        modeActiveHelp:"Modification active : sélectionner un état, puis cliquer sur les pages à modifier.",
+        boardNeutral:"Mode neutre : ordre des pages. Clic sur une page pour ouvrir la note.",
+        boardNeutralSorted:"Mode neutre : pages triées par avancement. Clic sur une page = note.",
+        boardActive:"Modification active : ordre des pages. Clic simple = appliquer l’état. Double-clic ou appui long = note.",
+        boardActiveSorted:"Modification active : pages triées par avancement. Clic simple = appliquer l’état.",
+        page:"page",
+        pagesLower:"pages",
+        finishedF:"terminée",
+        finishedFP:"terminées",
+        progress:"Progression",
+        boardLegend:"Légende des états",
+        projectPages:"Pages du projet",
+        newStatePrompt:"Nom du nouvel état :",
+        newStateRequired:"Donnez un nom au nouvel état.",
+        cannotDeleteDone:"L’état Terminé ne peut pas être supprimé.",
+        keepTwoStates:"Il faut conserver au moins deux états.",
+        deleteState:"Supprimer cet état",
+        moveUp:"Monter",
+        moveDown:"Descendre",
+        restoreConfirm:"Rétablir les états par défaut ? Les pages, notes, dates et nombres de cases sont conservés. Les pages utilisant un état personnalisé seront replacées sur « Non commencé ».",
+        importError:"Import impossible : fichier JSON non reconnu.",
+        baseConfirm:"Restaurer les couleurs et les intitulés d’état de base ? Les pages et les notes sont conservées.",
+        resetPagesConfirm:"Remettre toutes les pages à zéro ? Les états, notes, dates et nombres de cases des pages seront effacés.",
+        resetAllConfirm:"Tout remettre à zéro ? Le titre, la deadline, les pages, les notes, les cases, les états personnalisés et les réglages seront effacés.",
+        enterDue:"Saisir une date de rendu.",
+        selectWorkDay:"Sélectionner au moins un jour travaillé.",
+        duePassed:"La date de rendu est déjà passée.",
+        noWorkDay:"Aucun jour travaillé disponible avant cette date.",
+        allDone:"Tout est terminé.",
+        calendarDays:"jour(s) calendaires",
+        workedDays:"jour(s) travaillé(s)",
+        perWorkDay:"par jour travaillé",
+        toDo:"à réaliser",
+        unfinishedPanelInfo:"renseignée sur les pages non finies",
+        unfinishedPanelInfoPlural:"renseignées sur les pages non finies",
+        unfinishedPage:"non finie",
+        unfinishedPages:"non finies",
+        pageLabel:"Page",
+        withNote:"avec note",
+        note:"Note",
+        color:"Couleur",
+        menu:"Menu",
+        weekdays:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],
+        calHeads:["L","M","M","J","V","S","D"]
+      },
+      en:{
+        htmlLang:"en",
+        locale:"en-GB",
+        documentTitle:"WIP — Comic production tracking",
+        appTitle:"WIP",
+        organisation:"Workflow",
+        projectTitle:"Project title",
+        pageCount:"Number of pages",
+        deadline:"Deadline",
+        update:"Update",
+        export:"Export",
+        import:"Import",
+        print:"Print",
+        baseSettings:"Default settings",
+        resetPages:"Reset pages",
+        resetAll:"Reset everything",
+        help:"Info / Help",
+        helpTitle:"WIP — Info / Help",
+        helpIntro:"WIP tracks the progress of a project page by page.",
+        helpItem1:"Clicking a page opens its page sheet. In edit mode, clicking applies the selected status.",
+        helpItem2:"The ▲ and ▼ buttons reorder the statuses.",
+        helpItem3:"Each page can store a date, a panel count and additional details.",
+        helpItem4:"The calculator uses the deadline and can calculate the remaining work in pages or panels.",
+        helpItem5:"Data is stored locally and can be exported or imported as JSON.",
+        helpVersion:"WIP — Eigrutel Lab — v1.0.0",
+        editStates:"Edit page statuses",
+        states:"Statuses",
+        addState:"+ New status",
+        restoreStates:"Restore default statuses",
+        hideDone:"Hide finished pages",
+        sortProgress:"Sort by progress",
+        plannerTitle:"Work calculator",
+        plannerSubtitle:"Calculate the remaining work per working day to finish on time.",
+        today:"Today",
+        pages:"Pages",
+        panels:"Panels",
+        workDays:"Working days",
+        dueDate:"Due date",
+        totalPages:"Total number of pages",
+        totalPanels:"Total number of panels",
+        calculate:"Calculate",
+        notePage:"Page note",
+        date:"Date",
+        panelCount:"Number of panels",
+        notePlaceholder:"Details, documentation to find, text change, correction…",
+        noteHelp:"A page with a note gets an asterisk next to its number. The note is saved when the window closes.",
+        clear:"Clear",
+        close:"Close",
+        detectedLinks:"Detected links",
+        neutral:"Neutral mode",
+        activeState:"Active status",
+        noClickChange:"no status change on click",
+        modeNeutralHelp:"Neutral mode: clicking a page opens its note without changing its status.",
+        modeActiveHelp:"Editing active: select a status, then click the pages to change.",
+        boardNeutral:"Neutral mode: page order. Click a page to open its note.",
+        boardNeutralSorted:"Neutral mode: pages sorted by progress. Click a page = note.",
+        boardActive:"Editing active: page order. Single click = apply status. Double-click or long press = note.",
+        boardActiveSorted:"Editing active: pages sorted by progress. Single click = apply status.",
+        page:"page",
+        pagesLower:"pages",
+        finishedF:"finished",
+        finishedFP:"finished",
+        progress:"Progress",
+        boardLegend:"Status legend",
+        projectPages:"Project pages",
+        newStatePrompt:"Name of the new status:",
+        newStateRequired:"Give the new status a name.",
+        cannotDeleteDone:"The Done status cannot be deleted.",
+        keepTwoStates:"At least two statuses must be kept.",
+        deleteState:"Delete this status",
+        moveUp:"Move up",
+        moveDown:"Move down",
+        restoreConfirm:"Restore the default statuses? Pages, notes, dates and panel counts are kept. Pages using a custom status will be moved to “Not started”.",
+        importError:"Import failed: unrecognized JSON file.",
+        baseConfirm:"Restore the default status colours and labels? Pages and notes are kept.",
+        resetPagesConfirm:"Reset all pages? Page statuses, notes, dates and panel counts will be cleared.",
+        resetAllConfirm:"Reset everything? The title, deadline, pages, notes, panel counts, custom statuses and settings will be cleared.",
+        enterDue:"Enter a due date.",
+        selectWorkDay:"Select at least one working day.",
+        duePassed:"The due date has already passed.",
+        noWorkDay:"No working day is available before this date.",
+        allDone:"Everything is finished.",
+        calendarDays:"calendar day(s)",
+        workedDays:"working day(s)",
+        perWorkDay:"per working day",
+        toDo:"to complete",
+        unfinishedPanelInfo:"entered on unfinished pages",
+        unfinishedPanelInfoPlural:"entered on unfinished pages",
+        unfinishedPage:"unfinished",
+        unfinishedPages:"unfinished",
+        pageLabel:"Page",
+        withNote:"with note",
+        note:"Note",
+        color:"Colour",
+        menu:"Menu",
+        weekdays:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+        calHeads:["M","T","W","T","F","S","S"]
+      }
+    };
+
+    // Traduction uniquement des états fournis par défaut.
+    // Only built-in statuses are translated; custom labels remain untouched.
+    const DEFAULT_STATE_LABELS = {
+      "non-commence":{fr:"Non commencé",en:"Not started"},
+      "scenario":{fr:"Scénario",en:"Script"},
+      "decoupage":{fr:"Découpage",en:"Breakdown"},
+      "crayonne":{fr:"Crayonné",en:"Pencils"},
+      "encrage":{fr:"Encrage",en:"Inking"},
+      "lettrage":{fr:"Lettrage",en:"Lettering"},
+      "scan":{fr:"Scan",en:"Scan"},
+      "termine":{fr:"Terminé",en:"Done"}
+    };
+
+    function lang(){
+      return data?.lang === "en" ? "en" : "fr";
+    }
+
+    function tr(key){
+      return I18N[lang()][key] ?? I18N.fr[key] ?? key;
+    }
+
+    function translateDefaultStateLabels(){
+      data.states.forEach(state => {
+        const labels = DEFAULT_STATE_LABELS[state.id];
+        if(!labels) return;
+        if(state.label === labels.fr || state.label === labels.en){
+          state.label = labels[lang()];
+        }
+      });
+    }
+
+    function applyLanguage(){
+      const L = I18N[lang()];
+      document.documentElement.lang = L.htmlLang;
+      document.title = L.documentTitle;
+
+      translateDefaultStateLabels();
+
+      const setText = (selector, value) => {
+        const node = document.querySelector(selector);
+        if(node) node.textContent = value;
+      };
+
+      setText(".kicker", L.organisation);
+      setText("#main-title", L.appTitle);
+      setText('label[for="projectTitle"]', L.projectTitle);
+      setText('label[for="pageCount"]', L.pageCount);
+      setText('label[for="deadline"]', L.deadline);
+      setText("#updatePages", L.update);
+      setText("#exportJson", L.export);
+      setText("#importJsonBtn", L.import);
+      setText("#printBtn", L.print);
+      setText("#baseSettingsBtn", L.baseSettings);
+      setText("#resetPagesBtn", L.resetPages);
+      setText("#resetAllBtn", L.resetAll);
+      setText("#helpBtn", L.help);
+      setText("#helpTitle", L.helpTitle);
+      setText("#helpIntro", L.helpIntro);
+      setText("#helpItem1", L.helpItem1);
+      setText("#helpItem2", L.helpItem2);
+      setText("#helpItem3", L.helpItem3);
+      setText("#helpItem4", L.helpItem4);
+      setText("#helpItem5", L.helpItem5);
+      setText("#helpVersion", L.helpVersion);
+      setText("#closeHelp", L.close);
+      setText(".mode-box .check-row span", L.editStates);
+      setText("#statesDetails > summary", L.states);
+      setText("#addStateBtn", L.addState);
+      setText("#restoreDefaultStatesBtn", L.restoreStates);
+      setText(".options .check-row span", L.hideDone);
+      setText(".view-switch span", L.sortProgress);
+      setText("#plannerTitle", L.plannerTitle);
+      setText(".work-planner-subtitle", L.plannerSubtitle);
+      setText('#plannerMode label:nth-child(1)', L.pages);
+      setText('#plannerMode label:nth-child(2)', L.panels);
+      setText(".work-planner > .planner-field label", L.workDays);
+      setText('label[for="plannerEndDate"]', L.dueDate);
+      setText("#plannerCalcBtn", L.calculate);
+      setText('.page-meta-field label[for="noteDate"]', L.date);
+      setText('.page-meta-field label[for="notePanels"]', L.panelCount);
+      setText(".note-help", L.noteHelp);
+      setText("#clearNote", L.clear);
+      setText("#saveNote", L.close);
+
+      if(els.noteText) els.noteText.placeholder = L.notePlaceholder;
+      if(els.fileMenu?.querySelector("summary")){
+        els.fileMenu.querySelector("summary").setAttribute("aria-label", L.menu);
+        els.fileMenu.querySelector("summary").title = L.menu;
+      }
+      if(els.legendStrip) els.legendStrip.setAttribute("aria-label", L.boardLegend);
+      if(els.pagesGrid) els.pagesGrid.setAttribute("aria-label", L.projectPages);
+      const progress = document.querySelector(".progress");
+      if(progress) progress.setAttribute("aria-label", L.progress);
+
+      const weekdayLabels = [...document.querySelectorAll(".planner-weekday-toggle")];
+      weekdayLabels.forEach((label, i) => {
+        const input = label.querySelector("input");
+        label.textContent = "";
+        if(input) label.appendChild(input);
+        label.append(document.createTextNode(L.weekdays[i]));
+      });
+
+      const calHeads = [...document.querySelectorAll(".planner-cal-header span")];
+      calHeads.forEach((span, i) => span.textContent = L.calHeads[i] || "");
+
+      if(els.langSwitch){
+        els.langSwitch.textContent = "FR / EN";
+        els.langSwitch.title = lang() === "fr" ? "English" : "Français";
+        els.langSwitch.setAttribute("aria-label", els.langSwitch.title);
+      }
+
+      render();
+      syncPlannerDerivedFields();
+      updatePlannerToday();
+      save();
+    }
+
+    function updatePlannerToday(){
+      const node = document.getElementById("plannerToday");
+      if(!node) return;
+      const today = new Date();
+      node.textContent = `${tr("today")} : ${today.toLocaleDateString(I18N[lang()].locale, {weekday:"long", year:"numeric", month:"long", day:"numeric"})}`;
+    }
+
+    // Création, migration et persistance des pages / Page creation, migration and persistence
+    function makePages(count){
+      const existing = new Map(data.pages.map(p => [p.number, p]));
+      data.pages = Array.from({length: count}, (_, i) => {
+        const number = i + 1;
+        const previous = existing.get(number);
+        return {
+          number,
+          state: previous?.state || data.states[0].id,
+          note: previous?.note || "",
+          date: previous?.date || "",
+          panels: Number.isFinite(Number(previous?.panels)) ? Number(previous.panels) : 0
+        };
+      });
+    }
+
+    function syncEndpointDefaultColors(){
+      if(!Array.isArray(data.states) || !data.states.length) return;
+      const first = data.states.find(state => state.id === "non-commence");
+      const done = data.states.find(state => state.id === "termine");
+      if(first) first.color = defaultStates.find(state => state.id === "non-commence").color;
+      if(done) done.color = defaultStates.find(state => state.id === "termine").color;
+    }
+
+    function load(){
+      const saved = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
+        .map(key => localStorage.getItem(key))
+        .find(Boolean);
+      if(saved){
+        try{
+          const parsed = JSON.parse(saved);
+          data = {
+            ...data,
+            ...parsed,
+            states: Array.isArray(parsed.states) ? parsed.states : cloneDefaults(),
+            pages: Array.isArray(parsed.pages) ? parsed.pages : [],
+            deadline: typeof parsed.deadline === "string" ? parsed.deadline : "",
+            hideDone: Boolean(parsed.hideDone),
+            editMode: Boolean(parsed.editMode),
+            sortByState: Boolean(parsed.sortByState),
+            lang: parsed.lang === "en" ? "en" : "fr",
+            colorDefaultsVersion: parsed.colorDefaultsVersion || 0
+          };
+        }catch(e){
+          console.warn("Sauvegarde illisible", e);
+        }
+      }
+      ensureStateStructure();
+      if(data.colorDefaultsVersion !== DATA_COLOR_VERSION){
+        syncEndpointDefaultColors();
+        data.colorDefaultsVersion = DATA_COLOR_VERSION;
+      }
+      if(!data.pages.length) makePages(data.pageCount);
+      data.pages = data.pages.map(p => ({
+        number:p.number,
+        state:p.state || data.states[0].id,
+        note:p.note || "",
+        date: typeof p.date === "string" ? p.date : "",
+        panels: Number.isFinite(Number(p.panels)) ? Number(p.panels) : 0
+      }));
+      if(!data.states.some(s => s.id === data.activeState)) data.activeState = data.states[0].id;
+    }
+
+    function save(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Utilitaires des états protégés / Protected-status helpers
+    function stateById(id){
+      return data.states.find(s => s.id === id) || data.states[0];
+    }
+
+    function firstState(){
+      return data.states.find(state => state.id === "non-commence") || data.states[0];
+    }
+
+    function finishedState(){
+      return data.states.find(state => state.id === "termine") || null;
+    }
+
+    function ensureStateStructure(){
+      if(!Array.isArray(data.states)) data.states = cloneDefaults();
+
+      let done = data.states.find(state => state.id === "termine");
+      if(!done){
+        done = { ...defaultStates.find(state => state.id === "termine") };
+        data.states.push(done);
+      }
+
+      data.states = [
+        ...data.states.filter(state => state.id !== "termine"),
+        done
+      ];
+
+      if(!data.states.some(state => state.id === "non-commence")){
+        data.states.unshift({ ...defaultStates.find(state => state.id === "non-commence") });
+      }
+    }
+
+    function counts(){
+      const map = Object.fromEntries(data.states.map(s => [s.id, 0]));
+      for(const page of data.pages){
+        if(map[page.state] === undefined) map[page.state] = 0;
+        map[page.state]++;
+      }
+      return map;
+    }
+
+    // Rendu des états et commandes d’ordre / Status rendering and ordering controls
+    function renderStates(){
+      const countMap = counts();
+      els.states.innerHTML = "";
+
+      data.states.forEach((state, index) => {
+        const isFinished = state.id === "termine";
+
+        const row = document.createElement("div");
+        row.className = "state-row" + (state.id === data.activeState ? " active" : "");
+        row.dataset.id = state.id;
+
+        const swatch = document.createElement("div");
+        swatch.className = "swatch";
+        const color = document.createElement("input");
+        color.type = "color";
+        color.value = state.color;
+        color.title = tr("color");
+        color.addEventListener("input", () => {
+          state.color = color.value;
+          save();
+          render();
+        });
+        swatch.appendChild(color);
+
+        const name = document.createElement("input");
+        name.className = "state-name";
+        name.value = state.label;
+        name.addEventListener("focus", () => selectState(state.id));
+        name.addEventListener("input", () => {
+          state.label = name.value.trim() || defaultStates[index]?.label || "État";
+          save();
+          renderLegend();
+          renderMeta();
+        });
+
+        const count = document.createElement("div");
+        count.className = "state-count";
+        count.textContent = countMap[state.id] || 0;
+
+        const controls = document.createElement("div");
+        controls.className = "state-move";
+
+        if(!isFinished){
+          const order = document.createElement("span");
+          order.className = "state-order";
+
+          const up = document.createElement("button");
+          up.type = "button";
+          up.textContent = "▲";
+          up.title = tr("moveUp");
+          up.setAttribute("aria-label", `Monter l’état ${state.label}`);
+          up.disabled = index === 0;
+          up.addEventListener("click", (event) => {
+            event.stopPropagation();
+            moveState(state.id, -1);
+          });
+
+          const down = document.createElement("button");
+          down.type = "button";
+          down.textContent = "▼";
+          down.title = tr("moveDown");
+          down.setAttribute("aria-label", `Descendre l’état ${state.label}`);
+          down.disabled = index >= data.states.length - 2;
+          down.addEventListener("click", (event) => {
+            event.stopPropagation();
+            moveState(state.id, 1);
+          });
+
+          order.append(up, down);
+          controls.appendChild(order);
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "state-delete";
+          remove.title = tr("deleteState");
+          remove.setAttribute("aria-label", `${tr("deleteState")} : ${state.label}`);
+          remove.textContent = "×";
+          remove.disabled = data.states.length <= 2;
+          remove.addEventListener("click", (event) => {
+            event.stopPropagation();
+            removeState(state.id);
+          });
+          controls.appendChild(remove);
+        }
+
+        row.append(swatch, name, count, controls);
+
+        row.addEventListener("click", (event) => {
+          if(event.target.closest(".state-delete") || event.target.closest(".state-move")) return;
+          if(event.target.tagName !== "INPUT" || event.target.type !== "color") selectState(state.id);
+        });
+
+        els.states.appendChild(row);
+      });
+    }
+
+    function moveState(id, direction){
+      if(id === "termine") return;
+
+      const index = data.states.findIndex(state => state.id === id);
+      if(index < 0) return;
+
+      const targetIndex = index + direction;
+      if(targetIndex < 0) return;
+
+      const finishedIndex = data.states.findIndex(state => state.id === "termine");
+      if(targetIndex >= finishedIndex) return;
+
+      const statesWasOpen = Boolean(els.statesDetails?.open);
+
+      const [moved] = data.states.splice(index, 1);
+      data.states.splice(targetIndex, 0, moved);
+
+      ensureStateStructure();
+      save();
+      render();
+
+      if(els.statesDetails) els.statesDetails.open = statesWasOpen;
+    }
+
+    function makeStateId(label){
+      const base = String(label || "etat")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "etat";
+      let id = base;
+      let i = 2;
+      while(data.states.some(state => state.id === id)) id = `${base}-${i++}`;
+      return id;
+    }
+
+    function addState(){
+      const proposedName = prompt(tr("newStatePrompt"), "");
+      if(proposedName === null) return;
+
+      const label = String(proposedName).trim();
+      if(!label){
+        alert(tr("newStateRequired"));
+        return;
+      }
+
+      const newState = { id:makeStateId(label), label, color:"#B8C0C7" };
+      const finishedIndex = data.states.findIndex(state => state.id === "termine");
+      const insertAt = finishedIndex >= 0 ? finishedIndex : data.states.length;
+      data.states.splice(insertAt, 0, newState);
+      data.activeState = newState.id;
+      data.editMode = true;
+      save();
+      render();
+
+      requestAnimationFrame(() => {
+        const input = els.states.querySelector(`[data-id="${newState.id}"] .state-name`);
+        if(input){ input.focus(); input.select(); }
+      });
+    }
+
+    function removeState(id){
+      if(id === "termine"){
+        alert(tr("cannotDeleteDone"));
+        return;
+      }
+      if(data.states.length <= 2){
+        alert(tr("keepTwoStates"));
+        return;
+      }
+
+      const index = data.states.findIndex(state => state.id === id);
+      if(index < 0) return;
+
+      const state = data.states[index];
+      const usedCount = data.pages.filter(page => page.state === id).length;
+      const fallback = firstState();
+
+      const message = lang() === "en"
+        ? (usedCount
+          ? `Delete the “${state.label}” status? ${usedCount} page${usedCount > 1 ? "s" : ""} will move to “${fallback.label}”.`
+          : `Delete the “${state.label}” status?`)
+        : (usedCount
+          ? `Supprimer l’état « ${state.label} » ? ${usedCount} page${usedCount > 1 ? "s" : ""} passer${usedCount > 1 ? "ont" : "a"} à l’état « ${fallback.label} ».`
+          : `Supprimer l’état « ${state.label} » ?`);
+
+      if(!confirm(message)) return;
+
+      data.states.splice(index, 1);
+      data.pages = data.pages.map(page => page.state === id ? {...page, state:fallback.id} : page);
+      if(data.activeState === id) data.activeState = fallback.id;
+
+      ensureStateStructure();
+      save();
+      render();
+    }
+
+    function restoreDefaultStates(){
+      if(!confirm(tr("restoreConfirm"))) return;
+      const defaultIds = new Set(defaultStates.map(state => state.id));
+      data.states = cloneDefaults();
+      ensureStateStructure();
+      data.pages = data.pages.map(page => ({
+        ...page,
+        state: defaultIds.has(page.state) ? page.state : defaultStates[0].id
+      }));
+      data.activeState = defaultStates[0].id;
+      data.colorDefaultsVersion = DATA_COLOR_VERSION;
+      save();
+      render();
+    }
+
+    // Rendu du tableau des pages / Page-board rendering
+    function renderPages(){
+      els.pagesGrid.innerHTML = "";
+      const doneState = finishedState();
+      const stateOrder = Object.fromEntries(data.states.map((state, index) => [state.id, index]));
+      const visiblePages = (data.hideDone ? data.pages.filter(page => page.state !== doneState.id) : data.pages)
+        .slice()
+        .sort((a, b) => {
+          if(!data.sortByState) return a.number - b.number;
+          const stateDiff = (stateOrder[a.state] ?? 999) - (stateOrder[b.state] ?? 999);
+          return stateDiff || a.number - b.number;
+        });
+
+      visiblePages.forEach(page => {
+        const state = stateById(page.state);
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "page-tile" + (page.note ? " has-note" : "");
+        const panelCount = Math.max(0, parseInt(page.panels, 10) || 0);
+        tile.innerHTML = `<span class="page-number">${page.number}</span>${page.note ? '<span class="note-mark" aria-hidden="true">*</span>' : ''}${panelCount ? `<span class="panel-count" aria-hidden="true">${panelCount}</span>` : ''}`;
+        tile.style.background = state.color;
+        tile.title = `Page ${page.number} — ${state.label}${panelCount ? ` — ${panelCount} case${panelCount > 1 ? "s" : ""}` : ""}${page.note ? " — Note : " + page.note : ""}`;
+        tile.setAttribute("aria-label", `Page ${page.number}, ${state.label}${panelCount ? `, ${panelCount} case${panelCount > 1 ? "s" : ""}` : ""}${page.note ? ", avec note" : ""}`);
+
+        let longPressTimer = null;
+        let longPressDone = false;
+        let clickTimer = null;
+
+        tile.addEventListener("pointerdown", () => {
+          longPressDone = false;
+          longPressTimer = window.setTimeout(() => {
+            longPressDone = true;
+            if(clickTimer) window.clearTimeout(clickTimer);
+            openNote(page.number);
+          }, 520);
+        });
+
+        ["pointerup", "pointerleave", "pointercancel"].forEach(type => {
+          tile.addEventListener(type, () => {
+            if(longPressTimer) window.clearTimeout(longPressTimer);
+          });
+        });
+
+        tile.addEventListener("click", () => {
+          if(longPressDone) return;
+          if(clickTimer) window.clearTimeout(clickTimer);
+          clickTimer = window.setTimeout(() => {
+            if(data.editMode){
+              page.state = data.activeState;
+              save();
+              render();
+            }else{
+              openNote(page.number);
+            }
+          }, 220);
+        });
+
+        tile.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+          if(clickTimer) window.clearTimeout(clickTimer);
+          openNote(page.number);
+        });
+
+        els.pagesGrid.appendChild(tile);
+      });
+    }
+
+    function renderLegend(){
+      if(!els.legendStrip) return;
+      els.legendStrip.innerHTML = "";
+      data.states.forEach(state => {
+        const item = document.createElement("span");
+        item.className = "legend-tab";
+        item.title = state.label;
+        item.innerHTML = `<span class="legend-dot" style="background:${state.color}"></span><span class="legend-label">${escapeHtml(state.label)}</span>`;
+        els.legendStrip.appendChild(item);
+      });
+    }
+
+    // Mise à jour des informations générales / General UI metadata refresh
+    function renderMeta(){
+      els.projectTitle.value = data.title;
+      els.pageCount.value = data.pageCount;
+      els.deadline.value = data.deadline || "";
+      els.hideDone.checked = Boolean(data.hideDone);
+      els.sortByState.checked = Boolean(data.sortByState);
+      els.editMode.checked = Boolean(data.editMode);
+      document.body.classList.toggle("is-editing-states", Boolean(data.editMode));
+      const fallbackProject = lang() === "en" ? "Comic project" : "Projet BD";
+      els.boardTitle.textContent = `${data.title || fallbackProject} — ${data.pageCount} ${data.pageCount > 1 ? tr("pagesLower") : tr("page")}`;
+
+      const active = stateById(data.activeState);
+      if(data.editMode){
+        els.currentState.innerHTML = `${tr("activeState")} : <strong>${escapeHtml(active.label)}</strong>`;
+        els.modeHelp.textContent = tr("modeActiveHelp");
+        els.boardHint.textContent = data.sortByState ? tr("boardActiveSorted") : tr("boardActive");
+      }else{
+        els.currentState.innerHTML = `${tr("neutral")} : <strong>${tr("noClickChange")}</strong>`;
+        els.modeHelp.textContent = tr("modeNeutralHelp");
+        els.boardHint.textContent = data.sortByState ? tr("boardNeutralSorted") : tr("boardNeutral");
+      }
+
+      const doneState = finishedState();
+      const doneCount = data.pages.filter(p => p.state === doneState.id).length;
+      const percent = data.pageCount ? Math.round((doneCount / data.pageCount) * 100) : 0;
+      els.doneLabel.textContent = lang() === "en"
+        ? `${doneCount} ${doneCount === 1 ? "page" : "pages"} finished`
+        : `${doneCount} page${doneCount > 1 ? "s" : ""} terminée${doneCount > 1 ? "s" : ""}`;
+      els.percentLabel.textContent = `${percent} %`;
+      els.progressBar.style.width = `${percent}%`;
+      els.progressBar.style.background = doneState.color;
+    }
+
+    function render(){
+      renderMeta();
+      renderStates();
+      renderLegend();
+      renderPages();
+      if(document.getElementById("plannerTotalWork")) syncPlannerDerivedFields();
+    }
+
+    function selectState(id){
+      data.activeState = id;
+      data.editMode = true;
+      save();
+      renderStates();
+      renderMeta();
+    }
+
+    // Fiche page : note, date, nombre de cases / Page details: note, date, panel count
+    let editingNotePage = null;
+
+    function openNote(pageNumber){
+      const page = data.pages.find(p => p.number === pageNumber);
+      if(!page) return;
+      editingNotePage = pageNumber;
+      els.noteTitle.textContent = `${tr("notePage")} ${pageNumber}`;
+      els.noteDate.value = page.date || "";
+      els.notePanels.value = page.panels || "";
+      els.noteText.value = page.note || "";
+      renderNoteLinks();
+      els.noteModal.classList.add("open");
+      els.noteModal.setAttribute("aria-hidden", "false");
+      setTimeout(() => els.noteText.focus(), 0);
+    }
+
+    function closeNote(options = {}){
+      const shouldSave = options.save !== false;
+      if(shouldSave && editingNotePage !== null){
+        const page = data.pages.find(p => p.number === editingNotePage);
+        if(page){
+          page.note = String(els.noteText.value || "").trim();
+          page.date = els.noteDate.value || "";
+          page.panels = Math.max(0, parseInt(els.notePanels.value, 10) || 0);
+          save();
+          renderPages();
+          syncPlannerDerivedFields();
+        }
+      }
+      editingNotePage = null;
+      els.noteModal.classList.remove("open");
+      els.noteModal.setAttribute("aria-hidden", "true");
+    }
+
+    function saveCurrentNote(value){
+      if(editingNotePage === null) return;
+      els.noteText.value = String(value || "").trim();
+      closeNote({save:true});
+    }
+
+    function extractUrls(text){
+      const source = String(text || "");
+      const matches = source.match(/(?:https?:\/\/|www\.)[^\s<>()"']+/gi) || [];
+      return [...new Set(matches.map(url => url.replace(/[.,;:!?]+$/g, "")))];
+    }
+
+    function normalizeUrl(url){
+      return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    }
+
+    function renderNoteLinks(){
+      if(!els.noteLinks) return;
+      const urls = extractUrls(els.noteText.value);
+      if(!urls.length){
+        els.noteLinks.hidden = true;
+        els.noteLinks.innerHTML = "";
+        return;
+      }
+      els.noteLinks.hidden = false;
+      els.noteLinks.innerHTML = `<p class="note-links-title">${tr("detectedLinks")}</p>` + urls.map(url => {
+        const href = normalizeUrl(url);
+        return `<a class="note-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`;
+      }).join("");
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function cleanFilename(str){
+      return (str || "avancement")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9_-]+/gi, "_")
+        .replace(/^_+|_+$/g, "")
+        .toLowerCase() || "avancement";
+    }
+
+    // Événements principaux de l’interface / Main interface events
+    els.projectTitle.addEventListener("input", () => {
+      data.title = els.projectTitle.value;
+      save();
+      renderMeta();
+    });
+
+    els.deadline.addEventListener("change", () => {
+      data.deadline = els.deadline.value || "";
+      const plannerEndDate = document.getElementById("plannerEndDate");
+      if(plannerEndDate) plannerEndDate.value = data.deadline;
+      save();
+      syncPlannerDerivedFields();
+      savePlanner();
+    });
+
+    function normalizePageCountInput(fallback = data.pageCount){
+      const raw = String(els.pageCount.value || "").trim();
+      const parsed = parseInt(raw, 10);
+      if(!raw || !Number.isFinite(parsed)){
+        els.pageCount.value = fallback;
+        return fallback;
+      }
+      const n = Math.max(1, Math.min(600, parsed));
+      els.pageCount.value = n;
+      return n;
+    }
+
+    els.pageCount.addEventListener("input", () => {
+      // Ne pas normaliser pendant la saisie : sur iPad, cela empêche
+      // de supprimer temporairement le chiffre pour retaper une valeur.
+      const raw = String(els.pageCount.value || "").trim();
+      if(!raw) return;
+      const parsed = parseInt(raw, 10);
+      if(!Number.isFinite(parsed)) return;
+      data.pageCount = Math.max(1, Math.min(600, parsed));
+      const fallbackProject = lang() === "en" ? "Comic project" : "Projet BD";
+      els.boardTitle.textContent = `${data.title || fallbackProject} — ${data.pageCount} ${data.pageCount > 1 ? tr("pagesLower") : tr("page")}`;
+    });
+
+    els.pageCount.addEventListener("blur", () => {
+      data.pageCount = normalizePageCountInput();
+      renderMeta();
+    });
+
+    els.updatePages.addEventListener("click", () => {
+      const n = normalizePageCountInput();
+      data.pageCount = n;
+      makePages(n);
+      save();
+      render();
+    });
+
+    els.exportJson.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `wip_${cleanFilename(data.title)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    els.importJsonBtn.addEventListener("click", () => els.importJson.click());
+    els.importJson.addEventListener("change", async () => {
+      const file = els.importJson.files[0];
+      if(!file) return;
+      try{
+        const imported = JSON.parse(await file.text());
+        if(!Array.isArray(imported.states) || !Array.isArray(imported.pages)) throw new Error("Format incorrect");
+        data = {
+          title: imported.title || "Projet BD",
+          pageCount: Math.max(1, Math.min(600, parseInt(imported.pageCount, 10) || imported.pages.length || 1)),
+          deadline: typeof imported.deadline === "string" ? imported.deadline : "",
+          activeState: imported.activeState || imported.states[0].id,
+          states: imported.states,
+          pages: imported.pages,
+          hideDone: Boolean(imported.hideDone),
+          editMode: Boolean(imported.editMode),
+          sortByState: Boolean(imported.sortByState),
+          colorDefaultsVersion: imported.colorDefaultsVersion || 0
+        };
+        ensureStateStructure();
+        if(data.colorDefaultsVersion !== DATA_COLOR_VERSION){
+          syncEndpointDefaultColors();
+          data.colorDefaultsVersion = DATA_COLOR_VERSION;
+        }
+        makePages(data.pageCount);
+        save();
+        render();
+      }catch(e){
+        alert(tr("importError"));
+      }finally{
+        els.importJson.value = "";
+      }
+    });
+
+    els.addStateBtn.addEventListener("click", addState);
+    els.restoreDefaultStatesBtn.addEventListener("click", restoreDefaultStates);
+
+    els.editMode.addEventListener("change", () => {
+      data.editMode = els.editMode.checked;
+      save();
+      renderMeta();
+      renderPages();
+      renderStates();
+    });
+
+    els.hideDone.addEventListener("change", () => {
+      data.hideDone = els.hideDone.checked;
+      save();
+      renderPages();
+    });
+
+    els.sortByState.addEventListener("change", () => {
+      data.sortByState = els.sortByState.checked;
+      save();
+      renderMeta();
+      renderPages();
+    });
+
+        [els.exportJson, els.importJsonBtn, els.printBtn, els.baseSettingsBtn, els.resetPagesBtn].forEach(button => {
+      button.addEventListener("click", () => {
+        if(els.fileMenu) els.fileMenu.open = false;
+      });
+    });
+
+    els.printBtn.addEventListener("click", () => window.print());
+
+    els.noteText.addEventListener("input", renderNoteLinks);
+    els.saveNote.addEventListener("click", () => closeNote({save:true}));
+    els.clearNote.addEventListener("click", () => saveCurrentNote(""));
+    els.noteModal.addEventListener("click", (event) => {
+      if(event.target === els.noteModal) closeNote({save:true});
+    });
+    document.addEventListener("keydown", (event) => {
+      if(event.key === "Escape" && els.noteModal.classList.contains("open")) closeNote({save:true});
+      if(event.key === "Escape" && els.helpModal.classList.contains("open")){
+        els.helpModal.classList.remove("open");
+        els.helpModal.setAttribute("aria-hidden", "true");
+      }
+      if((event.metaKey || event.ctrlKey) && event.key === "Enter" && els.noteModal.classList.contains("open")){
+        closeNote({save:true});
+      }
+    });
+
+    els.baseSettingsBtn.addEventListener("click", () => {
+      if(!confirm(tr("baseConfirm"))) return;
+      const firstDefaultState = defaultStates[0].id;
+      const existingPages = data.pages.map(page => ({...page}));
+      data.states = cloneDefaults();
+      data.colorDefaultsVersion = DATA_COLOR_VERSION;
+      data.activeState = firstDefaultState;
+      data.editMode = false;
+      data.hideDone = false;
+      data.pages = existingPages.map(page => ({
+        ...page,
+        state: data.states.some(state => state.id === page.state) ? page.state : firstDefaultState,
+        note: page.note || ""
+      }));
+      save();
+      render();
+    });
+
+    els.resetPagesBtn.addEventListener("click", () => {
+      if(!confirm(tr("resetPagesConfirm"))) return;
+      const firstStateId = firstState().id;
+      data.pages = data.pages.map(page => ({
+        ...page,
+        state:firstStateId,
+        note:"",
+        date:"",
+        panels:""
+      }));
+      data.activeState = firstStateId;
+      data.hideDone = false;
+      data.editMode = false;
+      save();
+      render();
+      syncPlannerDerivedFields();
+    });
+
+    // Réglages propres au calculateur / Work calculator preferences
+    // Calculateur de travail / Work calculator
+    const PLANNER_STORAGE_KEY = "eigrutel_wip_planner_v1";
+    const LEGACY_PLANNER_STORAGE_KEYS = ["stripmee_avancement_planner_v2"];
+
+    function plannerSelectedDays(){
+      return [...document.querySelectorAll(".planner-weekday-input")]
+        .filter(input => input.checked)
+        .map(input => parseInt(input.dataset.day, 10));
+    }
+
+    function plannerUnit(){
+      return document.querySelector('input[name="plannerUnit"]:checked')?.value || "pages";
+    }
+
+    function syncPlannerControls(){
+      document.querySelectorAll(".planner-weekday-toggle").forEach(label => {
+        const input = label.querySelector("input");
+        label.classList.toggle("active", Boolean(input?.checked));
+      });
+      document.querySelectorAll(".planner-mode-toggle").forEach(label => {
+        const input = label.querySelector("input");
+        label.classList.toggle("active", Boolean(input?.checked));
+      });
+    }
+
+    function plannerRemainingPages(){
+      if(!data.states.length) return 0;
+      const doneStateId = finishedState()?.id || "termine";
+      return data.pages.filter(page => page.state !== doneStateId).length;
+    }
+
+    function plannerRemainingPanels(){
+      if(!data.states.length) return 0;
+      const doneStateId = finishedState()?.id || "termine";
+      return data.pages
+        .filter(page => page.state !== doneStateId)
+        .reduce((sum, page) => sum + Math.max(0, parseInt(page.panels, 10) || 0), 0);
+    }
+
+    function syncPlannerDerivedFields(){
+      const totalField = document.getElementById("plannerTotalWork");
+      const totalLabel = document.getElementById("plannerTotalWorkLabel");
+      const endDate = document.getElementById("plannerEndDate");
+      if(!totalField || !totalLabel) return;
+
+      const unit = plannerUnit();
+      if(unit === "cases"){
+        totalLabel.textContent = tr("totalPanels");
+        totalField.value = plannerRemainingPanels();
+      }else{
+        totalLabel.textContent = tr("totalPages");
+        totalField.value = plannerRemainingPages();
+      }
+
+      if(endDate && data.deadline && !endDate.value) endDate.value = data.deadline;
+      syncPlannerControls();
+    }
+
+    function savePlanner(){
+      const state = {
+        endDate: document.getElementById("plannerEndDate").value,
+        unit: plannerUnit(),
+        days: plannerSelectedDays()
+      };
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadPlanner(){
+      const today = new Date();
+      updatePlannerToday();
+      let saved = null;
+      try{
+        const raw = [PLANNER_STORAGE_KEY, ...LEGACY_PLANNER_STORAGE_KEYS]
+          .map(key => localStorage.getItem(key))
+          .find(Boolean);
+        saved = JSON.parse(raw || "null");
+      }catch(e){
+        console.warn("Réglages du calculateur illisibles / Unreadable planner settings", e);
+      }
+
+      // La deadline du projet est la date de rendu par défaut et prime à l'ouverture.
+      if(data.deadline){
+        document.getElementById("plannerEndDate").value = data.deadline;
+      }else if(saved?.endDate){
+        document.getElementById("plannerEndDate").value = saved.endDate;
+      }else{
+        const plus30 = new Date(today); plus30.setDate(plus30.getDate()+30);
+        document.getElementById("plannerEndDate").value = plus30.toISOString().slice(0,10);
+      }
+
+      const savedUnit = saved?.unit === "cases" ? "cases" : "pages";
+      const unitInput = document.querySelector(`input[name="plannerUnit"][value="${savedUnit}"]`);
+      if(unitInput) unitInput.checked = true;
+
+      if(Array.isArray(saved?.days)){
+        document.querySelectorAll(".planner-weekday-input").forEach(input => input.checked = saved.days.includes(parseInt(input.dataset.day,10)));
+      }else{
+        document.querySelectorAll(".planner-weekday-input").forEach(input => input.checked = [1,2,3,4,5].includes(parseInt(input.dataset.day,10)));
+      }
+      syncPlannerDerivedFields();
+    }
+
+    function buildPlannerCalendar(start,end,workDays){
+      const box=document.getElementById("plannerCalendar"); box.innerHTML="";
+      const set=new Set(workDays.map(d=>d.getTime()));
+      let cur=new Date(start); cur.setHours(0,0,0,0);
+      const blanks=((cur.getDay()+6)%7);
+      for(let i=0;i<blanks;i++){ const cell=document.createElement("div"); cell.className="planner-cal-cell off"; box.appendChild(cell); }
+      while(cur<=end){
+        const cell=document.createElement("div");
+        cell.className="planner-cal-cell "+(set.has(cur.getTime())?"work":"off");
+        cell.textContent=cur.getDate(); box.appendChild(cell);
+        cur.setDate(cur.getDate()+1); cur.setHours(0,0,0,0);
+      }
+    }
+
+    function calculatePlanner(){
+      syncPlannerDerivedFields();
+      const error=document.getElementById("plannerError");
+      const result=document.getElementById("plannerResult");
+      error.textContent=""; result.style.display="none";
+      const endStr=document.getElementById("plannerEndDate").value;
+      const remaining=parseInt(document.getElementById("plannerTotalWork").value,10) || 0;
+      const selected=plannerSelectedDays();
+      const unit=plannerUnit();
+      const noun = unit === "cases"
+        ? (lang() === "en" ? "panel" : "case")
+        : "page";
+      const nouns = unit === "cases"
+        ? (lang() === "en" ? "panels" : "cases")
+        : "pages";
+      if(!endStr){ error.textContent=tr("enterDue"); return; }
+      if(!selected.length){ error.textContent=tr("selectWorkDay"); return; }
+      const today=new Date(); today.setHours(0,0,0,0);
+      const end=new Date(endStr+"T00:00:00"); end.setHours(0,0,0,0);
+      if(end<today){ error.textContent=tr("duePassed"); return; }
+      const workDays=[]; let cur=new Date(today);
+      while(cur<=end){ if(selected.includes(cur.getDay())) workDays.push(new Date(cur)); cur.setDate(cur.getDate()+1); cur.setHours(0,0,0,0); }
+      if(!workDays.length){ error.textContent=tr("noWorkDay"); return; }
+      const perDay=remaining>0?remaining/workDays.length:0;
+      const calDays=Math.floor((end-today)/86400000)+1;
+      const locale = I18N[lang()].locale;
+      if(lang() === "en"){
+        document.getElementById("plannerSummary").textContent =
+          `From ${today.toLocaleDateString(locale)} to ${end.toLocaleDateString(locale)}: ${remaining} ${remaining === 1 ? noun : nouns} to complete.`;
+        document.getElementById("plannerDaysInfo").textContent =
+          `${calDays} calendar day${calDays === 1 ? "" : "s"}, including ${workDays.length} working day${workDays.length === 1 ? "" : "s"}.`;
+        document.getElementById("plannerPerDay").textContent = remaining > 0
+          ? `${perDay.toFixed(2)} ${noun}${perDay === 1 ? "" : "s"} per working day.`
+          : tr("allDone");
+        document.getElementById("plannerProgressText").textContent = unit === "cases"
+          ? `${remaining} panel${remaining === 1 ? "" : "s"} entered on unfinished pages`
+          : `${remaining} unfinished page${remaining === 1 ? "" : "s"}`;
+      }else{
+        document.getElementById("plannerSummary").textContent =
+          `Du ${today.toLocaleDateString(locale)} au ${end.toLocaleDateString(locale)} : ${remaining} ${remaining > 1 ? nouns : noun} à réaliser.`;
+        document.getElementById("plannerDaysInfo").textContent =
+          `${calDays} jour(s) calendaires, dont ${workDays.length} jour(s) travaillé(s).`;
+        document.getElementById("plannerPerDay").textContent = remaining > 0
+          ? `${perDay.toFixed(2)} ${noun}${perDay > 1 ? "s" : ""} par jour travaillé.`
+          : tr("allDone");
+        document.getElementById("plannerProgressText").textContent = unit === "cases"
+          ? `${remaining} case${remaining > 1 ? "s" : ""} renseignée${remaining > 1 ? "s" : ""} sur les pages non finies`
+          : `${remaining} page${remaining > 1 ? "s" : ""} non finie${remaining > 1 ? "s" : ""}`;
+      }
+      document.getElementById("plannerProgressFill").style.width=remaining===0?"100%":"0%";
+      buildPlannerCalendar(today,end,workDays);
+      result.style.display="block";
+      savePlanner();
+    }
+
+    document.querySelectorAll(".planner-weekday-input").forEach(input => input.addEventListener("change", () => { syncPlannerControls(); savePlanner(); }));
+    document.querySelectorAll('input[name="plannerUnit"]').forEach(input => input.addEventListener("change", () => { syncPlannerDerivedFields(); savePlanner(); }));
+    document.getElementById("plannerEndDate").addEventListener("change", savePlanner);
+    document.getElementById("plannerCalcBtn").addEventListener("click", calculatePlanner);
+
+    // Langue, aide et remise à zéro / Language, help and reset
+    els.langSwitch.addEventListener("click", () => {
+      data.lang = lang() === "fr" ? "en" : "fr";
+      if(els.fileMenu) els.fileMenu.open = false;
+      applyLanguage();
+    });
+
+    els.helpBtn.addEventListener("click", () => {
+      if(els.fileMenu) els.fileMenu.open = false;
+      els.helpModal.classList.add("open");
+      els.helpModal.setAttribute("aria-hidden", "false");
+    });
+
+    els.closeHelp.addEventListener("click", () => {
+      els.helpModal.classList.remove("open");
+      els.helpModal.setAttribute("aria-hidden", "true");
+    });
+
+    els.helpModal.addEventListener("click", (event) => {
+      if(event.target === els.helpModal){
+        els.helpModal.classList.remove("open");
+        els.helpModal.setAttribute("aria-hidden", "true");
+      }
+    });
+
+
+    els.resetAllBtn.addEventListener("click", () => {
+      if(!confirm(tr("resetAllConfirm"))) return;
+
+      data = makeDefaultData();
+
+      // Projet vierge : on conserve la structure de l’application, mais on vide les champs.
+      data.title = "";
+      data.deadline = "";
+      data.pageCount = 1;
+      data.pages = [{
+        number:1,
+        state:data.states[0].id,
+        note:"",
+        date:"",
+        panels:0
+      }];
+      data.hideDone = false;
+      data.editMode = false;
+      data.sortByState = false;
+      data.activeState = data.states[0].id;
+
+      // Réinitialisation des éventuels réglages du calculateur.
+      if(data.workCalculator && typeof data.workCalculator === "object"){
+        data.workCalculator = {};
+      }
+
+      [STORAGE_KEY, ...LEGACY_STORAGE_KEYS].forEach(key => localStorage.removeItem(key));
+      [PLANNER_STORAGE_KEY, ...LEGACY_PLANNER_STORAGE_KEYS].forEach(key => localStorage.removeItem(key));
+
+      save();
+      render();
+
+      // Vider aussi les champs du calculateur qui ne seraient pas pilotés par render().
+      document.querySelectorAll(".work-planner input").forEach(input => {
+        if(input.type === "checkbox" || input.type === "radio") return;
+        if(input.type === "date") input.value = "";
+      });
+
+      if(els.fileMenu) els.fileMenu.open = false;
+    });
+
+    // Initialisation / Initialization
+    load();
+    render();
+    loadPlanner();
+    applyLanguage();
+    syncPlannerDerivedFields();
+  </script>
+</body>
+</html>
