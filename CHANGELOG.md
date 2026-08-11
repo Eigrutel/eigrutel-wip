@@ -4,6 +4,21 @@ Toutes les modifications notables de WIP sont consignées dans ce fichier.
 
 Le projet suit une numérotation de version de type `MAJEURE.MINEURE.CORRECTIF`.
 
+## [1.1.0] — 11-08-2026
+
+### Ajouté
+
+- changement d’état directement depuis la fiche d’une page ;
+- menu d’état personnalisé avec pastilles de couleur ;
+- nouvelle palette de couleurs par défaut pour les états.
+
+### Corrigé
+
+- correction du sélecteur de couleur sur iPad / Safari : le spectre et les curseurs restent ouverts pendant le réglage ;
+- mise à jour immédiate de la couleur des vignettes de pages ;
+- mise à jour immédiate de la légende lors d’un changement de couleur ;
+- synchronisation immédiate des pastilles du menu d’état de la fiche.
+
 ## [1.0.0] — 10-08-2026
 
 ### Première version stable

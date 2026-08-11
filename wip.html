@@ -2,8 +2,8 @@
 Eigrutel Lab - Atelier d'outils libres pour la bande dessinée
 Programme conçu et développé par Simon Léturgie dans le cadre d'Eigrutel BD Academy.
 Nom : WIP
-Version : 1.0.0
-Date : 10-08-2026
+Version : 1.1.0
+Date : 11-08-2026
 Code : GNU AGPL v3.0 ou version ultérieure.
 Documentation et modèles : CC BY-SA 4.0, sauf mention contraire.
 Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Academy : réservés.
@@ -874,6 +874,8 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     }
 
     @media (max-width:720px){
+      .page-meta-grid{grid-template-columns:1fr}
+
       .app{width:min(100% - 18px, 1180px);margin-top:10px}
       .hero{padding:18px}
       .kicker::before,.kicker::after{flex-basis:32px}
@@ -908,13 +910,16 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     /* Métadonnées de page / Page metadata */
     .page-meta-grid{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:1fr 1fr 1fr;
       gap:10px;
       margin:0 0 10px;
     }
 
     .page-meta-field{
       min-width:0;
+    }
+
+    .page-meta-field:not(.page-meta-state){
       overflow:hidden;
     }
 
@@ -940,7 +945,129 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       outline:none;
     }
 
-    .page-meta-field input[type="date"]{
+    
+    .page-state-select-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .page-state-swatch{
+      flex:0 0 18px;
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid rgba(31,58,68,.18);
+      background:#fff;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+
+    .page-state-select-wrap select{
+      flex:1 1 auto;
+      min-width:0;
+      appearance:auto;
+      cursor:pointer;
+    }
+
+    .page-state-picker{
+      position:relative;
+      width:100%;
+      z-index:90;
+    }
+
+    .page-state-picker-button{
+      width:100%;
+      height:40px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:var(--ink);
+      padding:0 11px;
+      cursor:pointer;
+      text-align:left;
+    }
+
+    .page-state-picker-current-label{
+      flex:1 1 auto;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    .page-state-picker-chevron{
+      flex:0 0 auto;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .page-state-picker-menu{
+      position:absolute;
+      z-index:80;
+      top:calc(100% + 5px);
+      left:0;
+      width:100%;
+      max-height:280px;
+      overflow:auto;
+      padding:5px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 16px 38px rgba(31,58,68,.18);
+    }
+
+    .page-state-picker-menu[hidden]{display:none}
+
+    .page-state-option{
+      width:100%;
+      min-height:34px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:0;
+      border-radius:8px;
+      background:transparent;
+      color:var(--ink);
+      padding:6px 8px;
+      cursor:pointer;
+      text-align:left;
+      font:inherit;
+    }
+
+    .page-state-option:hover,
+    .page-state-option:focus{
+      background:var(--soft);
+      outline:none;
+    }
+
+    .page-state-option.active{
+      font-weight:800;
+      background:#F7F8FA;
+    }
+
+    .page-state-option-dot{
+      flex:0 0 11px;
+      width:11px;
+      height:11px;
+      border-radius:999px;
+      border:1px solid rgba(31,58,68,.18);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);
+    }
+
+    .page-state-option-check{
+      margin-left:auto;
+      color:var(--atelier);
+      font-weight:900;
+      opacity:0;
+    }
+
+    .page-state-option.active .page-state-option-check{opacity:1}
+
+.page-meta-field input[type="date"]{
       -webkit-appearance:none;
       appearance:none;
       overflow:hidden;
@@ -1208,6 +1335,21 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     <div class="note-dialog" role="dialog" aria-modal="true" aria-labelledby="noteTitle">
       <h3 id="noteTitle">Note page</h3>
       <div class="page-meta-grid">
+        <div class="page-meta-field page-meta-state">
+          <label for="noteStateButton">État</label>
+
+          <div class="page-state-picker" id="noteStatePicker">
+            <button class="page-state-picker-button" id="noteStateButton" type="button"
+                    aria-haspopup="listbox" aria-expanded="false">
+              <span class="page-state-picker-current-label" id="noteStateCurrentLabel"></span>
+              <span class="page-state-picker-chevron" aria-hidden="true">▾</span>
+            </button>
+
+            <div class="page-state-picker-menu" id="noteStateMenu" role="listbox" hidden></div>
+          </div>
+
+          <select id="noteState" hidden aria-hidden="true" tabindex="-1"></select>
+        </div>
         <div class="page-meta-field"><label for="noteDate">Date</label><input id="noteDate" type="date"></div>
         <div class="page-meta-field"><label for="notePanels">Nombre de cases</label><input id="notePanels" type="number" inputmode="numeric" min="0" max="99" placeholder="0"></div>
       </div>
@@ -1238,7 +1380,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       <div class="note-actions">
         <button class="btn primary" id="closeHelp" type="button">Fermer</button>
       </div>
-      <p class="help-version" id="helpVersion">WIP — Eigrutel Lab — v1.0.0</p>
+      <p class="help-version" id="helpVersion">WIP — Eigrutel Lab — v1.1.0</p>
     </div>
   </div>
 
@@ -1246,8 +1388,8 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     // Métadonnées de l’application / Application metadata
     const APP_META = Object.freeze({
       name:"WIP",
-      version:"1.0.0",
-      date:"10-08-2026"
+      version:"1.1.0",
+      date:"11-08-2026"
     });
 
     // Stockage local principal et compatibilité avec les versions de travail.
@@ -1258,18 +1400,18 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       "stripmee_avancement_v5",
       "stripmee_avancement_v4"
     ];
-    const DATA_COLOR_VERSION = 15;
+    const DATA_COLOR_VERSION = 16;
 
     // États de production fournis par défaut / Default production statuses
     const defaultStates = [
-      { id:"non-commence", label:"Non commencé", color:"#FFF2D5" },
-      { id:"scenario", label:"Scénario", color:"#d6a45f" },
-      { id:"decoupage", label:"Découpage", color:"#c77f55" },
-      { id:"crayonne", label:"Crayonné", color:"#8fa878" },
-      { id:"encrage", label:"Encrage", color:"#6f98a8" },
-      { id:"lettrage", label:"Lettrage", color:"#8a7fa8" },
-      { id:"scan", label:"Scan", color:"#b47672" },
-      { id:"termine", label:"Terminé", color:"#474747" }
+      { id:"non-commence", label:"Non commencé", color:"#FDFCE0" },
+      { id:"scenario", label:"Scénario", color:"#D6CAFA" },
+      { id:"decoupage", label:"Découpage", color:"#DE789D" },
+      { id:"crayonne", label:"Crayonné", color:"#D2EFFD" },
+      { id:"encrage", label:"Encrage", color:"#E6EF7A" },
+      { id:"lettrage", label:"Lettrage", color:"#FAE4D9" },
+      { id:"scan", label:"Scan", color:"#489FD4" },
+      { id:"termine", label:"Terminé", color:"#1E4C63" }
     ];
 
     // Données initiales du projet / Initial project data
@@ -1339,6 +1481,11 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       sortByState: document.getElementById("sortByState"),
       noteModal: document.getElementById("noteModal"),
       noteTitle: document.getElementById("noteTitle"),
+      noteState: document.getElementById("noteState"),
+      noteStatePicker: document.getElementById("noteStatePicker"),
+      noteStateButton: document.getElementById("noteStateButton"),
+      noteStateMenu: document.getElementById("noteStateMenu"),
+      noteStateCurrentLabel: document.getElementById("noteStateCurrentLabel"),
       noteDate: document.getElementById("noteDate"),
       notePanels: document.getElementById("notePanels"),
       noteText: document.getElementById("noteText"),
@@ -1373,7 +1520,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         helpItem3:"Chaque page peut recevoir une date, un nombre de cases et des précisions.",
         helpItem4:"Le calculateur utilise la deadline et peut calculer le travail restant en pages ou en cases.",
         helpItem5:"Les données sont enregistrées localement et peuvent être exportées ou importées en JSON.",
-        helpVersion:"WIP — Eigrutel Lab — v1.0.0",
+        helpVersion:"WIP — Eigrutel Lab — v1.1.0",
         editStates:"Modifier les états des pages",
         states:"États",
         addState:"+ Nouvel état",
@@ -1391,6 +1538,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         totalPanels:"Nombre total de cases",
         calculate:"Calculer",
         notePage:"Note page",
+        status:"État",
         date:"Date",
         panelCount:"Nombre de cases",
         notePlaceholder:"Précisions, documentation à chercher, changement de texte, correction…",
@@ -1471,7 +1619,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         helpItem3:"Each page can store a date, a panel count and additional details.",
         helpItem4:"The calculator uses the deadline and can calculate the remaining work in pages or panels.",
         helpItem5:"Data is stored locally and can be exported or imported as JSON.",
-        helpVersion:"WIP — Eigrutel Lab — v1.0.0",
+        helpVersion:"WIP — Eigrutel Lab — v1.1.0",
         editStates:"Edit page statuses",
         states:"Statuses",
         addState:"+ New status",
@@ -1489,6 +1637,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         totalPanels:"Total number of panels",
         calculate:"Calculate",
         notePage:"Page note",
+        status:"Status",
         date:"Date",
         panelCount:"Number of panels",
         notePlaceholder:"Details, documentation to find, text change, correction…",
@@ -1625,6 +1774,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       setText(".work-planner > .planner-field label", L.workDays);
       setText('label[for="plannerEndDate"]', L.dueDate);
       setText("#plannerCalcBtn", L.calculate);
+      setText('.page-meta-field label[for="noteState"]', L.status);
       setText('.page-meta-field label[for="noteDate"]', L.date);
       setText('.page-meta-field label[for="notePanels"]', L.panelCount);
       setText(".note-help", L.noteHelp);
@@ -1689,10 +1839,13 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
 
     function syncEndpointDefaultColors(){
       if(!Array.isArray(data.states) || !data.states.length) return;
-      const first = data.states.find(state => state.id === "non-commence");
-      const done = data.states.find(state => state.id === "termine");
-      if(first) first.color = defaultStates.find(state => state.id === "non-commence").color;
-      if(done) done.color = defaultStates.find(state => state.id === "termine").color;
+
+      // Met à jour la palette des états intégrés sans toucher aux états personnalisés.
+      // Updates built-in status colors without altering custom statuses.
+      const defaultsById = new Map(defaultStates.map(state => [state.id, state.color]));
+      data.states.forEach(state => {
+        if(defaultsById.has(state.id)) state.color = defaultsById.get(state.id);
+      });
     }
 
     function load(){
@@ -1797,11 +1950,59 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         color.type = "color";
         color.value = state.color;
         color.title = tr("color");
+        // Pendant le réglage, ne pas reconstruire le DOM :
+        // sur iOS/Safari, render() referme immédiatement le sélecteur natif.
+        // While adjusting, do not rebuild the DOM: on iOS/Safari,
+        // render() closes the native color picker immediately.
         color.addEventListener("input", () => {
           state.color = color.value;
           save();
-          render();
+
+          // Mise à jour immédiate sans reconstruire le DOM.
+          // Immediate visual update without rebuilding the DOM.
+
+          // Carré couleur de la ligne d'état.
+          swatch.style.backgroundColor = color.value;
+
+          // Vignettes de pages utilisant cet état.
+          document.querySelectorAll(".page-tile").forEach(tile => {
+            const pageNumber = Number(tile.dataset.page);
+            const page = data.pages.find(p => p.number === pageNumber);
+            if(page && page.state === state.id){
+              tile.style.backgroundColor = color.value;
+            }
+          });
+
+          // Pastilles de la légende.
+          document.querySelectorAll(".legend-pill").forEach(pill => {
+            const label = pill.textContent.trim();
+            if(label === state.label){
+              const dot = pill.querySelector(".dot, .legend-dot");
+              if(dot) dot.style.backgroundColor = color.value;
+            }
+          });
+
+          // Pastilles éventuelles du menu d'état dans la fiche page.
+          if(els.noteStateMenu){
+            els.noteStateMenu.querySelectorAll(".page-state-option").forEach(button => {
+              if(button.dataset.stateId === state.id){
+                const dot = button.querySelector(".page-state-option-dot");
+                if(dot) dot.style.backgroundColor = color.value;
+              }
+            });
+          }
         });
+
+        color.addEventListener("change", () => {
+          state.color = color.value;
+          save();
+        });
+        color.addEventListener("click", event => event.stopPropagation());
+        color.addEventListener("pointerdown", event => event.stopPropagation());
+        color.addEventListener("pointerup", event => event.stopPropagation());
+        swatch.addEventListener("click", event => event.stopPropagation());
+        swatch.addEventListener("pointerdown", event => event.stopPropagation());
+
         swatch.appendChild(color);
 
         const name = document.createElement("input");
@@ -1869,7 +2070,8 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
 
         row.addEventListener("click", (event) => {
           if(event.target.closest(".state-delete") || event.target.closest(".state-move")) return;
-          if(event.target.tagName !== "INPUT" || event.target.type !== "color") selectState(state.id);
+          if(event.target.closest(".swatch") || (event.target.tagName === "INPUT" && event.target.type === "color")) return;
+          selectState(state.id);
         });
 
         els.states.appendChild(row);
@@ -2006,6 +2208,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         const tile = document.createElement("button");
         tile.type = "button";
         tile.className = "page-tile" + (page.note ? " has-note" : "");
+        tile.dataset.page = String(page.number);
         const panelCount = Math.max(0, parseInt(page.panels, 10) || 0);
         tile.innerHTML = `<span class="page-number">${page.number}</span>${page.note ? '<span class="note-mark" aria-hidden="true">*</span>' : ''}${panelCount ? `<span class="panel-count" aria-hidden="true">${panelCount}</span>` : ''}`;
         tile.style.background = state.color;
@@ -2117,14 +2320,96 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       renderMeta();
     }
 
-    // Fiche page : note, date, nombre de cases / Page details: note, date, panel count
+    // Fiche page : état, note, date, nombre de cases / Page details: status, note, date, panel count
     let editingNotePage = null;
+
+    function updateNoteStatePicker(stateId){
+      const state = stateById(stateId) || data.states[0];
+      if(!state) return;
+
+      els.noteState.value = state.id;
+      els.noteStateCurrentLabel.textContent = state.label;
+
+      els.noteStateMenu.querySelectorAll(".page-state-option").forEach(button => {
+        const active = button.dataset.stateId === state.id;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", active ? "true" : "false");
+      });
+    }
+
+    function closeNoteStateMenu(){
+      if(!els.noteStateMenu || !els.noteStateButton) return;
+      els.noteStateMenu.hidden = true;
+      els.noteStateButton.setAttribute("aria-expanded", "false");
+    }
+
+    function openNoteStateMenu(){
+      if(!els.noteStateMenu || !els.noteStateButton) return;
+      els.noteStateMenu.hidden = false;
+      els.noteStateButton.setAttribute("aria-expanded", "true");
+    }
+
+    function toggleNoteStateMenu(){
+      if(!els.noteStateMenu) return;
+      if(els.noteStateMenu.hidden) openNoteStateMenu();
+      else closeNoteStateMenu();
+    }
+
+    function renderNoteStateOptions(selectedId){
+      if(!els.noteState || !els.noteStateMenu) return;
+
+      els.noteState.innerHTML = "";
+      els.noteStateMenu.innerHTML = "";
+
+      data.states.forEach(state => {
+        const option = document.createElement("option");
+        option.value = state.id;
+        option.textContent = state.label;
+        option.selected = state.id === selectedId;
+        els.noteState.appendChild(option);
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "page-state-option";
+        button.dataset.stateId = state.id;
+        button.setAttribute("role", "option");
+
+        const dot = document.createElement("span");
+        dot.className = "page-state-option-dot";
+        dot.style.backgroundColor = state.color;
+        dot.setAttribute("aria-hidden", "true");
+
+        const label = document.createElement("span");
+        label.className = "page-state-option-label";
+        label.textContent = state.label;
+
+        const check = document.createElement("span");
+        check.className = "page-state-option-check";
+        check.textContent = "✓";
+        check.setAttribute("aria-hidden", "true");
+
+        button.append(dot, label, check);
+
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          updateNoteStatePicker(state.id);
+          closeNoteStateMenu();
+        });
+
+        els.noteStateMenu.appendChild(button);
+      });
+
+      updateNoteStatePicker(selectedId);
+      closeNoteStateMenu();
+    }
 
     function openNote(pageNumber){
       const page = data.pages.find(p => p.number === pageNumber);
       if(!page) return;
       editingNotePage = pageNumber;
       els.noteTitle.textContent = `${tr("notePage")} ${pageNumber}`;
+      renderNoteStateOptions(page.state);
       els.noteDate.value = page.date || "";
       els.notePanels.value = page.panels || "";
       els.noteText.value = page.note || "";
@@ -2139,14 +2424,18 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       if(shouldSave && editingNotePage !== null){
         const page = data.pages.find(p => p.number === editingNotePage);
         if(page){
+          page.state = data.states.some(state => state.id === els.noteState.value)
+            ? els.noteState.value
+            : page.state;
           page.note = String(els.noteText.value || "").trim();
           page.date = els.noteDate.value || "";
           page.panels = Math.max(0, parseInt(els.notePanels.value, 10) || 0);
           save();
-          renderPages();
+          render();
           syncPlannerDerivedFields();
         }
       }
+      closeNoteStateMenu();
       editingNotePage = null;
       els.noteModal.classList.remove("open");
       els.noteModal.setAttribute("aria-hidden", "true");
@@ -2193,14 +2482,34 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     }
 
     function cleanFilename(str){
-      return (str || "avancement")
+      return (str || "wip")
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9_-]+/gi, "_")
         .replace(/^_+|_+$/g, "")
-        .toLowerCase() || "avancement";
+        .toLowerCase() || "wip";
     }
+    // Menu d’état de la fiche page / Page-note status menu
+    els.noteStateButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleNoteStateMenu();
+    });
 
-    // Événements principaux de l’interface / Main interface events
+    els.noteStateButton.addEventListener("pointerup", (event) => {
+      event.stopPropagation();
+    });
+
+    els.noteStateMenu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if(els.noteStatePicker && !els.noteStatePicker.contains(event.target)){
+        closeNoteStateMenu();
+      }
+    });
+
+// Événements principaux de l’interface / Main interface events
     els.projectTitle.addEventListener("input", () => {
       data.title = els.projectTitle.value;
       save();

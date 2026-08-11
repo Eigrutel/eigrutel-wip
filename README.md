@@ -2,7 +2,7 @@
 
 **WIP** est une application web bilingue et autonome d’Eigrutel Lab pour suivre l’avancement d’un projet de bande dessinée page par page, organiser les étapes de production et estimer le travail restant avant une échéance.
 
-**Version stable : 1.0.0 — 10-08-2026**
+**Version stable : 1.1.0 — 11-08-2026**
 
 ## Ouvrir l’application
 
@@ -100,6 +100,8 @@ Les états intermédiaires peuvent être renommés, recolorés, ajoutés, suppri
 - tri par avancement et masquage des pages terminées ;
 - progression générale du projet ;
 - fiche individuelle par page ;
+- changement d’état directement depuis la fiche page ;
+- pastilles couleur dans le menu d’état de la fiche ;
 - date, nombre de cases et précisions par page ;
 - détection des liens dans les notes ;
 - calculateur de travail en pages ou en cases ;
