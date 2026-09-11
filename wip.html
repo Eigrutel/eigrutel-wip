@@ -2,8 +2,8 @@
 Eigrutel Lab - Atelier d'outils libres pour la bande dessinée
 Programme conçu et développé par Simon Léturgie dans le cadre d'Eigrutel BD Academy.
 Nom : WIP
-Version : 1.1.0
-Date : 11-08-2026
+Version : 1.1.1
+Date : 11-09-2026
 Code : GNU AGPL v3.0 ou version ultérieure.
 Documentation et modèles : CC BY-SA 4.0, sauf mention contraire.
 Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Academy : réservés.
@@ -12,6 +12,56 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
 <html lang="fr">
 
 <head>
+<script>
+
+// Eigrutel Projets bridge v0.1.0 — isolated in-memory working copy.
+const eigrutelEmbedded = window.parent !== window && new URLSearchParams(location.search).get('projets') === '1';
+
+// Read a native JSON or extract only this application's payload from Projets v1.
+function extractEigrutelProject(input, tool, language) {
+  if(!input || input.app !== 'eigrutel-projets')return input;
+  const en=language==='en';
+  const fail=(fr,enText)=>{const e=new Error(en?enText:fr);e.importMessage=true;throw e;};
+  if(input.version!==1)fail('Version du fichier Projets non prise en charge.','Unsupported Projets file version.');
+  const project=input.project;
+  if(!project || typeof project!=='object' || Array.isArray(project) || !project.tools || typeof project.tools!=='object' || Array.isArray(project.tools))
+    fail('Le fichier Projets est incomplet ou invalide.','The Projets file is incomplete or invalid.');
+  if(!Object.prototype.hasOwnProperty.call(project.tools,tool) || project.tools[tool]===null || project.tools[tool]===undefined)
+    fail('Ce fichier Projets ne contient pas de données pour '+(tool==='personnages'?'Personnages':tool==='univers'?'Univers':tool==='wip'?'WIP':tool==='scenoscope'?'Scénoscope':'Boussole')+'.','This Projets file contains no data for '+(tool==='personnages'?'Characters':tool==='univers'?'Universe':tool==='wip'?'WIP':tool==='scenoscope'?'Scénoscope':'Compass')+'.');
+  const data=project.tools[tool];
+  if(typeof data!=='object' || Array.isArray(data))fail('Les données de cette application sont invalides.','The application data is invalid.');
+  const result=JSON.parse(JSON.stringify(data));
+  if(tool==='personnages' && typeof project.name==='string')result.projectName=project.name;
+  if(tool==='univers' && !result.projectTitle && typeof project.name==='string')result.projectTitle=project.name;
+  return result;
+}
+
+const eigrutelMemory = new Map();
+let eigrutelPending=0;
+class EigrutelFileReader extends FileReader {
+ constructor(){super();this.addEventListener('loadstart',()=>{eigrutelPending++;});this.addEventListener('loadend',()=>{eigrutelPending=Math.max(0,eigrutelPending-1);});}
+}
+const eigrutelLocal = eigrutelEmbedded ? {
+ get length(){return eigrutelMemory.size;},key:i=>Array.from(eigrutelMemory.keys())[i]??null,
+ getItem:k=>eigrutelMemory.has(k)?eigrutelMemory.get(k):null,
+ setItem:(k,v)=>eigrutelMemory.set(k,String(v)), removeItem:k=>eigrutelMemory.delete(k)
+} : window.localStorage;
+
+function validateWipData(d){
+ const obj=x=>x&&typeof x==='object'&&!Array.isArray(x);
+ const fail=()=>{throw new Error('Ce fichier ne contient pas un projet WIP valide.');};
+ if(!obj(d)||(d.app&&d.app!=='wip'))fail();
+ if(d.initialize===true&&d.app==='wip'&&typeof d.title==='string')return d;
+ if(!Array.isArray(d.states)||!Array.isArray(d.pages)||d.pages.length>600)fail();
+ const ids=new Set(),numbers=new Set();
+ for(const s of d.states){if(!obj(s)||typeof s.id!=='string'||!s.id||ids.has(s.id)||typeof s.label!=='string'||typeof s.color!=='string')fail();ids.add(s.id);}
+ ids.add('non-commence');ids.add('termine');
+ for(const p of d.pages){if(!obj(p)||!Number.isInteger(p.number)||p.number<1||p.number>600||numbers.has(p.number)||(p.state!=null&&!ids.has(p.state)))fail();numbers.add(p.number);for(const k of ['note','date'])if(p[k]!=null&&typeof p[k]!=='string')fail();}
+ if(d.title!==undefined&&typeof d.title!=='string')fail();
+ if(d.planner!=null&&(!obj(d.planner)||typeof d.planner.endDate!=='string'||!['pages','cases'].includes(d.planner.unit)||!Array.isArray(d.planner.days)||d.planner.days.some(x=>!Number.isInteger(x)||x<0||x>6)))fail();
+ return d;
+}
+</script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WIP — Suivi de pages BD</title>
@@ -1380,7 +1430,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       <div class="note-actions">
         <button class="btn primary" id="closeHelp" type="button">Fermer</button>
       </div>
-      <p class="help-version" id="helpVersion">WIP — Eigrutel Lab — v1.1.0</p>
+      <p class="help-version" id="helpVersion">WIP — Eigrutel Lab — v1.1.1</p>
     </div>
   </div>
 
@@ -1388,8 +1438,8 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     // Métadonnées de l’application / Application metadata
     const APP_META = Object.freeze({
       name:"WIP",
-      version:"1.1.0",
-      date:"11-08-2026"
+      version:"1.1.1",
+      date:"11-09-2026"
     });
 
     // Stockage local principal et compatibilité avec les versions de travail.
@@ -1520,7 +1570,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         helpItem3:"Chaque page peut recevoir une date, un nombre de cases et des précisions.",
         helpItem4:"Le calculateur utilise la deadline et peut calculer le travail restant en pages ou en cases.",
         helpItem5:"Les données sont enregistrées localement et peuvent être exportées ou importées en JSON.",
-        helpVersion:"WIP — Eigrutel Lab — v1.1.0",
+        helpVersion:"WIP — Eigrutel Lab — v1.1.1",
         editStates:"Modifier les états des pages",
         states:"États",
         addState:"+ Nouvel état",
@@ -1619,7 +1669,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         helpItem3:"Each page can store a date, a panel count and additional details.",
         helpItem4:"The calculator uses the deadline and can calculate the remaining work in pages or panels.",
         helpItem5:"Data is stored locally and can be exported or imported as JSON.",
-        helpVersion:"WIP — Eigrutel Lab — v1.1.0",
+        helpVersion:"WIP — Eigrutel Lab — v1.1.1",
         editStates:"Edit page statuses",
         states:"Statuses",
         addState:"+ New status",
@@ -1850,7 +1900,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
 
     function load(){
       const saved = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
-        .map(key => localStorage.getItem(key))
+        .map(key => eigrutelLocal.getItem(key))
         .find(Boolean);
       if(saved){
         try{
@@ -1888,7 +1938,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     }
 
     function save(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      eigrutelLocal.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
     // Utilitaires des états protégés / Protected-status helpers
@@ -2563,7 +2613,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     });
 
     els.exportJson.addEventListener("click", () => {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+      const blob = new Blob([JSON.stringify(getWipProject(), null, 2)], { type:"application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `wip_${cleanFilename(data.title)}.json`;
@@ -2575,32 +2625,13 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     els.importJson.addEventListener("change", async () => {
       const file = els.importJson.files[0];
       if(!file) return;
+      eigrutelPending++;
       try{
-        const imported = JSON.parse(await file.text());
-        if(!Array.isArray(imported.states) || !Array.isArray(imported.pages)) throw new Error("Format incorrect");
-        data = {
-          title: imported.title || "Projet BD",
-          pageCount: Math.max(1, Math.min(600, parseInt(imported.pageCount, 10) || imported.pages.length || 1)),
-          deadline: typeof imported.deadline === "string" ? imported.deadline : "",
-          activeState: imported.activeState || imported.states[0].id,
-          states: imported.states,
-          pages: imported.pages,
-          hideDone: Boolean(imported.hideDone),
-          editMode: Boolean(imported.editMode),
-          sortByState: Boolean(imported.sortByState),
-          colorDefaultsVersion: imported.colorDefaultsVersion || 0
-        };
-        ensureStateStructure();
-        if(data.colorDefaultsVersion !== DATA_COLOR_VERSION){
-          syncEndpointDefaultColors();
-          data.colorDefaultsVersion = DATA_COLOR_VERSION;
-        }
-        makePages(data.pageCount);
-        save();
-        render();
+        applyWipProject(JSON.parse(await file.text()));
       }catch(e){
-        alert(tr("importError"));
+        alert(e.message || tr("importError"));
       }finally{
+        eigrutelPending=Math.max(0,eigrutelPending-1);
         els.importJson.value = "";
       }
     });
@@ -2755,7 +2786,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         unit: plannerUnit(),
         days: plannerSelectedDays()
       };
-      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
+      eigrutelLocal.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
     }
 
     function loadPlanner(){
@@ -2764,7 +2795,7 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       let saved = null;
       try{
         const raw = [PLANNER_STORAGE_KEY, ...LEGACY_PLANNER_STORAGE_KEYS]
-          .map(key => localStorage.getItem(key))
+          .map(key => eigrutelLocal.getItem(key))
           .find(Boolean);
         saved = JSON.parse(raw || "null");
       }catch(e){
@@ -2919,8 +2950,8 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
         data.workCalculator = {};
       }
 
-      [STORAGE_KEY, ...LEGACY_STORAGE_KEYS].forEach(key => localStorage.removeItem(key));
-      [PLANNER_STORAGE_KEY, ...LEGACY_PLANNER_STORAGE_KEYS].forEach(key => localStorage.removeItem(key));
+      [STORAGE_KEY, ...LEGACY_STORAGE_KEYS].forEach(key => eigrutelLocal.removeItem(key));
+      [PLANNER_STORAGE_KEY, ...LEGACY_PLANNER_STORAGE_KEYS].forEach(key => eigrutelLocal.removeItem(key));
 
       save();
       render();
@@ -2934,6 +2965,42 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
       if(els.fileMenu) els.fileMenu.open = false;
     });
 
+
+    function getWipProject(){
+      const result=JSON.parse(JSON.stringify(data));
+      result.app='wip';result.version=APP_META.version;
+      result.planner={endDate:document.getElementById('plannerEndDate').value,unit:plannerUnit(),days:plannerSelectedDays()};
+      if(editingNotePage!==null){
+        const page=result.pages.find(p=>p.number===editingNotePage);
+        if(page){
+          if(result.states.some(s=>s.id===els.noteState.value))page.state=els.noteState.value;
+          page.note=els.noteText.value;page.date=els.noteDate.value||'';
+          page.panels=Math.max(0,parseInt(els.notePanels.value,10)||0);
+        }
+      }
+      return result;
+    }
+    function applyWipProject(input,name){
+      const imported=JSON.parse(JSON.stringify(validateWipData(extractEigrutelProject(input,'wip',data.lang))));
+      const next=imported.initialize===true?makeDefaultData():{...makeDefaultData(),...imported};
+      delete next.initialize;
+      next.title=imported.title||name||'';
+      next.lang=next.lang==='en'?'en':'fr';
+      // Keep every imported page, including when a pending count change was not applied.
+      const last=next.pages.reduce((n,p)=>Math.max(n,p.number),0);
+      next.pageCount=Math.max(1,Math.min(600,Math.max(parseInt(next.pageCount,10)||1,last)));
+      closeNote({save:false});
+      data=next;ensureStateStructure();makePages(data.pageCount);
+      data.colorDefaultsVersion=DATA_COLOR_VERSION;
+      if(!data.states.some(s=>s.id===data.activeState))data.activeState=data.states[0].id;
+      [PLANNER_STORAGE_KEY,...LEGACY_PLANNER_STORAGE_KEYS].forEach(k=>eigrutelLocal.removeItem(k));
+      if(imported.planner)eigrutelLocal.setItem(PLANNER_STORAGE_KEY,JSON.stringify(imported.planner));
+      loadPlanner();
+      if(imported.planner)document.getElementById('plannerEndDate').value=imported.planner.endDate;
+      applyLanguage();render();save();savePlanner();
+    }
+    window.EigrutelApp={get:getWipProject,set:applyWipProject};
+
     // Initialisation / Initialization
     load();
     render();
@@ -2941,5 +3008,39 @@ Marques, logos et signes distinctifs Eigrutel / Eigrutel Lab / Eigrutel BD Acade
     applyLanguage();
     syncPlannerDerivedFields();
   </script>
+<script>
+
+if(eigrutelEmbedded) {
+ let loaded=false, signature='', revision=0, acknowledged=0, initId='', timer;
+ const send=(type,more={})=>parent.postMessage({channel:'eigrutel-projets-v1',appId:'wip',type,initId,...more},location.origin);
+ const report=(requestId)=>{
+   if(!loaded) return;
+   if(eigrutelPending>0){if(requestId)setTimeout(()=>report(requestId),100);return;}
+   try {
+     const data=window.EigrutelApp.get(); const next=JSON.stringify(data);
+     if(next!==signature || requestId){ signature=next; revision++; send('save',{data,revision,requestId}); }
+     else if(revision<=acknowledged)send('clean');
+   } catch(error){send('error',{message:error.message,requestId});}
+ };
+ window.addEventListener('message',event=>{
+   if(event.source!==parent || event.origin!==location.origin || event.data?.channel!=='eigrutel-projets-v1') return;
+   const m=event.data;
+   if(m.type==='init'){
+     loaded=false; initId=m.initId;
+     try{window.EigrutelApp.set(m.data,m.name); signature=''; loaded=true;send('loaded');report();}
+     catch(error){send('error',{message:error.message});}
+   }else if(m.initId===initId && m.type==='flush')report(m.requestId);
+   else if(m.initId===initId && m.type==='ack')acknowledged=Math.max(acknowledged,m.revision);
+ });
+ const dirty=()=>{if(!loaded)return;send('dirty');clearTimeout(timer);timer=setTimeout(()=>report(),150);};
+ document.addEventListener('input',dirty); document.addEventListener('change',dirty);document.addEventListener('click',dirty);
+ setInterval(()=>report(),800);
+ window.addEventListener('beforeunload',event=>{if(loaded && (eigrutelPending>0 || revision>acknowledged || JSON.stringify(window.EigrutelApp.get())!==signature)){event.preventDefault();event.returnValue='';}});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)report();});
+ const ready=()=>send('ready');
+ if(document.readyState!=='loading')ready();else document.addEventListener('DOMContentLoaded',ready,{once:true});
+}
+
+</script>
 </body>
 </html>
